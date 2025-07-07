@@ -2,7 +2,7 @@ name: wallora
 description: "Wallpapers App"
 publish_to: 'none'
 
-version: 1.0.2+2
+version: 1.0.4+4
 
 environment:
   sdk: ^3.8.1
@@ -21,3 +21,8 @@ dev_dependencies:
 flutter:
 
   uses-material-design: true
+
+  assets:
+    - assets/images/img1.jpg
+    - assets/images/img2.jpg
+    - assets/images/img3.jpg

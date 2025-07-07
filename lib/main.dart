@@ -17,14 +17,15 @@ class WallpaperApp extends StatelessWidget {
   }
 }
 
+// Local image paths list
+const List<String> localWallpapers = [
+  'assets/images/img1.jpg',
+  'assets/images/img2.jpg',
+  'assets/images/img3.jpg',
+];
+
 class WallpapersPage extends StatelessWidget {
   const WallpapersPage({super.key});
-
-  final List<String> wallpapers = const [
-    'https://ik.imagekit.io/xvx0it6mrf/Wallpapers/IMG_20250707_163316_050.jpg?updatedAt=1751890828875',
-    'https://ik.imagekit.io/xvx0it6mrf/Wallpapers/IMG_20250707_163316_864.jpg?updatedAt=1751890828131',
-    'https://ik.imagekit.io/xvx0it6mrf/Wallpapers/IMG_20250707_163316_800.jpg?updatedAt=1751890827592',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -33,25 +34,25 @@ class WallpapersPage extends StatelessWidget {
       body: GridView.builder(
         padding: const EdgeInsets.all(10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,  // 2 per row
+          crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
         ),
-        itemCount: wallpapers.length,
+        itemCount: localWallpapers.length,
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => FullScreenImage(imageUrl: wallpapers[index]),
+                  builder: (_) => FullScreenLocalImage(imagePath: localWallpapers[index]),
                 ),
               );
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                wallpapers[index],
+              child: Image.asset(
+                localWallpapers[index],
                 fit: BoxFit.cover,
               ),
             ),
@@ -62,16 +63,19 @@ class WallpapersPage extends StatelessWidget {
   }
 }
 
-class FullScreenImage extends StatelessWidget {
-  final String imageUrl;
-  const FullScreenImage({super.key, required this.imageUrl});
+class FullScreenLocalImage extends StatelessWidget {
+  final String imagePath;
+  const FullScreenLocalImage({super.key, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
-        child: Image.network(imageUrl),
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
