@@ -1,4 +1,4 @@
-package com.example.wallora
+package com.wallora.app
 
 import io.flutter.embedding.android.FlutterActivity
 
