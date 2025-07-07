@@ -5,6 +5,7 @@ const List<String> localWallpapers = [
   'assets/images/img1.jpg',
   'assets/images/img2.jpg',
   'assets/images/img3.jpg',
+  'https://i.rj1.dev/yavolPP', // added online image
 ];
 
 class WallpapersPage extends StatelessWidget {
@@ -23,23 +24,23 @@ class WallpapersPage extends StatelessWidget {
         ),
         itemCount: localWallpapers.length,
         itemBuilder: (context, index) {
+          final imagePath = localWallpapers[index];
+          final isNetwork = imagePath.startsWith('http');
+
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => FullScreenLocalImage(
-                    imagePath: localWallpapers[index],
-                  ),
+                  builder: (_) => FullScreenLocalImage(imagePath: imagePath),
                 ),
               );
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                localWallpapers[index],
-                fit: BoxFit.cover,
-              ),
+              child: isNetwork
+                  ? Image.network(imagePath, fit: BoxFit.cover)
+                  : Image.asset(imagePath, fit: BoxFit.cover),
             ),
           );
         },

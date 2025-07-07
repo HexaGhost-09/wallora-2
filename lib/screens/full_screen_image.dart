@@ -6,15 +6,16 @@ class FullScreenLocalImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNetwork = imagePath.startsWith('http');
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
         onTap: () => Navigator.pop(context),
         child: Center(
-          child: Image.asset(
-            imagePath,
-            fit: BoxFit.contain,
-          ),
+          child: isNetwork
+              ? Image.network(imagePath, fit: BoxFit.contain)
+              : Image.asset(imagePath, fit: BoxFit.contain),
         ),
       ),
     );
