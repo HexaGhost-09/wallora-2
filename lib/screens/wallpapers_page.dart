@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'full_screen_image.dart';
+import 'full_screen_image.dart'; // Assuming this file exists and handles full-screen image display
 
 const List<String> localWallpapers = [
   'assets/images/img1.jpg',
@@ -21,6 +21,7 @@ class WallpapersPage extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
+          childAspectRatio: 9 / 16, // <--- Modified this line
         ),
         itemCount: localWallpapers.length,
         itemBuilder: (context, index) {
