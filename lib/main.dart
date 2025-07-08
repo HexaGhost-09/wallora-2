@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/wallpapers_page.dart';
+import 'screens/wallpapers_page.dart'; // Import the WallpapersPage
 
 void main() {
   runApp(const WallpaperApp());

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'full_screen_image.dart'; // Assuming this file exists and handles full-screen image display
+import 'full_screen_image.dart'; // Import the FullScreenLocalImage
 
 const List<String> localWallpapers = [
   'assets/images/img1.jpg',
@@ -21,7 +21,7 @@ class WallpapersPage extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          childAspectRatio: 9 / 16, // <--- Modified this line
+          childAspectRatio: 9 / 16,
         ),
         itemCount: localWallpapers.length,
         itemBuilder: (context, index) {
@@ -40,8 +40,31 @@ class WallpapersPage extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: isNetwork
-                  ? Image.network(imagePath, fit: BoxFit.cover)
-                  : Image.asset(imagePath, fit: BoxFit.cover),
+                  ? Image.network(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.error, color: Colors.red);
+                      },
+                    )
+                  : Image.asset(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.error, color: Colors.red);
+                      },
+                    ),
             ),
           );
         },
