@@ -2,7 +2,7 @@ name: wallora
 description: "Wallpapers App"
 publish_to: 'none'
 
-version: 1.1.0+10
+version: 1.1.1+11
 
 environment:
   sdk: ^3.8.1
@@ -10,9 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http: ^1.2.1
   cupertino_icons: ^1.0.8
   change_app_package_name: ^1.5.0
-
+   
 dev_dependencies:
   flutter_test:
     sdk: flutter
