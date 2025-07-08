@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Import http package
-import 'dart:convert'; // For JSON decoding
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:ui'; // Import for ImageFilter
 
-import 'full_screen_image.dart'; // Import the FullScreenLocalImage
+import 'full_screen_image.dart';
 
 class WallpapersPage extends StatefulWidget {
   const WallpapersPage({super.key});
@@ -28,17 +29,16 @@ class _WallpapersPageState extends State<WallpapersPage> {
       errorMessage = null;
     });
 
-    // Using the GitHub Gist URL provided by the user
+    // IMPORTANT: Using the GitHub Gist URL provided by the user
     const String apiUrl = 'https://gist.githubusercontent.com/HexaGhost-09/d279e6df015bf16a6ef259feda4d0359/raw/f282c196ca3e8d262a369b20b0ed8b84b71ecdb9/wallpapers.json';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
-        // Decode the JSON response
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          wallpaperImages = data.cast<String>(); // Cast dynamic list to List<String>
+          wallpaperImages = data.cast<String>();
           isLoading = false;
         });
       } else {
@@ -60,12 +60,21 @@ class _WallpapersPageState extends State<WallpapersPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wallpapers'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.transparent, // Make AppBar background transparent
         foregroundColor: Colors.white,
+        elevation: 0, // Remove shadow
+        flexibleSpace: ClipRect( // ClipRect is important for BackdropFilter
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Apply blur effect
+            child: Container(
+              color: Colors.black.withOpacity(0.3), // Semi-transparent overlay for glass effect
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _fetchWallpapers, // Add a refresh button
+            onPressed: _fetchWallpapers,
           ),
         ],
       ),
@@ -97,7 +106,13 @@ class _WallpapersPageState extends State<WallpapersPage> {
                       child: Text('No wallpapers found. Try refreshing.'),
                     )
                   : GridView.builder(
-                      padding: const EdgeInsets.all(10),
+                      // Add padding to account for the transparent AppBar
+                      padding: EdgeInsets.only(
+                        top: AppBar().preferredSize.height + MediaQuery.of(context).padding.top + 10,
+                        left: 10,
+                        right: 10,
+                        bottom: 10,
+                      ),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 10,
@@ -107,7 +122,6 @@ class _WallpapersPageState extends State<WallpapersPage> {
                       itemCount: wallpaperImages.length,
                       itemBuilder: (context, index) {
                         final imagePath = wallpaperImages[index];
-                        // Determine if it's a network image for proper loading
                         final isNetwork = imagePath.startsWith('http');
 
                         return GestureDetector(
@@ -140,7 +154,7 @@ class _WallpapersPageState extends State<WallpapersPage> {
                                       return const Icon(Icons.error, color: Colors.red);
                                     },
                                   )
-                                : Image.asset( // Fallback for local assets if any are added
+                                : Image.asset(
                                     imagePath,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
