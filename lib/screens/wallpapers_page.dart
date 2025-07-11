@@ -90,12 +90,7 @@ class _WallpapersPageState extends State<WallpapersPage> {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchWallpapers,
-          ),
-        ],
+        // Removed the actions property as the refresh button is no longer needed
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,63 +119,66 @@ class _WallpapersPageState extends State<WallpapersPage> {
                   ? const Center(
                       child: Text('No wallpapers found. Try refreshing.'),
                     )
-                  : GridView.builder(
-                      padding: EdgeInsets.only(
-                        top: AppBar().preferredSize.height + MediaQuery.of(context).padding.top + 10,
-                        left: 10,
-                        right: 10,
-                        bottom: 10,
-                      ),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 9 / 16,
-                      ),
-                      itemCount: wallpapers.length,
-                      itemBuilder: (context, index) {
-                        final wallpaper = wallpapers[index]; // Get the WallpaperItem
-                        final imagePath = wallpaper.imageUrl; // Use imageUrl for preview
+                  : RefreshIndicator( // Added RefreshIndicator for pull-to-refresh
+                      onRefresh: _fetchWallpapers, // Call _fetchWallpapers when pulled down
+                      child: GridView.builder(
+                        padding: EdgeInsets.only(
+                          top: AppBar().preferredSize.height + MediaQuery.of(context).padding.top + 10,
+                          left: 10,
+                          right: 10,
+                          bottom: 10,
+                        ),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 9 / 16,
+                        ),
+                        itemCount: wallpapers.length,
+                        itemBuilder: (context, index) {
+                          final wallpaper = wallpapers[index]; // Get the WallpaperItem
+                          final imagePath = wallpaper.imageUrl; // Use imageUrl for preview
 
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                // Pass the entire WallpaperItem to the full-screen page
-                                builder: (_) => FullScreenWallpaperPage(wallpaperItem: wallpaper),
-                              ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: CachedNetworkImage( // Changed from Image.network to CachedNetworkImage
-                              imageUrl: imagePath,
-                              fit: BoxFit.cover,
-                              // Placeholder shown while the image is loading
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[300],
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  // Pass the entire WallpaperItem to the full-screen page
+                                  builder: (_) => FullScreenWallpaperPage(wallpaperItem: wallpaper),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage( // Changed from Image.network to CachedNetworkImage
+                                imageUrl: imagePath,
+                                fit: BoxFit.cover,
+                                // Placeholder shown while the image is loading
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              // Widget shown if the image fails to load
-                              errorWidget: (context, url, error) => Container(
-                                color: Colors.grey[400],
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    color: Colors.red,
-                                    size: 40,
+                                // Widget shown if the image fails to load
+                                errorWidget: (context, url, error) => Container(
+                                  color: Colors.grey[400],
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.red,
+                                      size: 40,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
     );
   }

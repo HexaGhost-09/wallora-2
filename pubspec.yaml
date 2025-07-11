@@ -2,7 +2,7 @@ name: wallora
 description: "Wallpapers App"
 publish_to: 'none'
 
-version: 1.1.9+19
+version: 1.2.0+20
 
 environment:
   sdk: ^3.8.1
@@ -20,7 +20,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
  
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:
@@ -33,7 +33,15 @@ flutter:
 
   uses-material-design: true
 
-  assets:
-    - assets/images/img1.jpg
-    - assets/images/img2.jpg
-    - assets/images/img3.jpg
+dependency_overrides:
+  characters: ^1.4.1
+  leak_tracker: ^11.0.1
+  leak_tracker_flutter_testing: ^3.0.10
+  leak_tracker_testing: ^3.0.2
+  material_color_utilities: ^0.13.0
+  meta: ^1.17.0
+  petitparser: ^7.0.0
+  test_api: ^0.7.6
+  vector_math: ^2.2.0
+  vm_service: ^15.0.2
+  xml: ^6.6.0
