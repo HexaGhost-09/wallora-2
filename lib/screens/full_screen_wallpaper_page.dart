@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:io'; // For File operations
 import 'package:path_provider/path_provider.dart'; // For temporary file storage
 import 'package:wallora/data/models/wallpaper_model.dart'; // Import the WallpaperItem model
-import 'dart:ui';
+import 'dart:ui'; // Import for ImageFilter
+import 'package:cached_network_image/cached_network_image.dart'; // Added for image caching
 
 // Define constants for wallpaper types
 enum WallpaperType { homeScreen, lockScreen, both }
@@ -153,26 +154,27 @@ class _FullScreenWallpaperPageState extends State<FullScreenWallpaperPage> {
         children: [
           // Full-screen image display
           Positioned.fill(
-            child: Image.network(
-              widget.wallpaperItem.imageUrl, // Use imageUrl for display
+            child: CachedNetworkImage( // Changed from Image.network to CachedNetworkImage
+              imageUrl: widget.wallpaperItem.imageUrl, // Use imageUrl for display
               fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
+              placeholder: (context, url) => Container(
+                color: Colors.grey[300],
+                child: const Center(
                   child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                    color: Colors.white,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
                   ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(
-                  child: Icon(Icons.error, color: Colors.red, size: 50),
-                );
-              },
+                ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey[400],
+                child: const Center(
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.red,
+                    size: 40,
+                  ),
+                ),
+              ),
             ),
           ),
           // Gradient overlay for better text visibility

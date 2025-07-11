@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:ui'; // Import for ImageFilter
+import 'package:cached_network_image/cached_network_image.dart'; // Added for image caching
 
 import 'package:wallora/data/models/wallpaper_model.dart'; // Import the new model
 import 'full_screen_wallpaper_page.dart'; // We will rename and update this file next
@@ -153,23 +154,29 @@ class _WallpapersPageState extends State<WallpapersPage> {
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network( // All images from API are network images
-                              imagePath,
+                            child: CachedNetworkImage( // Changed from Image.network to CachedNetworkImage
+                              imageUrl: imagePath,
                               fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
+                              // Placeholder shown while the image is loading
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[300],
+                                child: const Center(
                                   child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
                                   ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.error, color: Colors.red);
-                              },
+                                ),
+                              ),
+                              // Widget shown if the image fails to load
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey[400],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: Colors.red,
+                                    size: 40,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         );
