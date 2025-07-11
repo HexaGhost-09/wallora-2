@@ -29,16 +29,30 @@ class _WallpapersPageState extends State<WallpapersPage> {
       errorMessage = null;
     });
 
-    // IMPORTANT: Using the GitHub Gist URL provided by the user
-    const String apiUrl = 'https://gist.githubusercontent.com/HexaGhost-09/d279e6df015bf16a6ef259feda4d0359/raw/f282c196ca3e8d262a369b20b0ed8b84b71ecdb9/wallpapers.json';
+    // UPDATED: Using the new API server URL
+    const String apiUrl = 'https://wallora-wallpapers.deno.dev/wallpapers';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
+        // Decode the JSON response, which is now a list of objects
         final List<dynamic> data = json.decode(response.body);
+
+        // Extract only the 'image' URLs from each object
+        final List<String> fetchedImages = data.map((item) {
+          // Ensure 'image' field exists and is a String
+          if (item is Map<String, dynamic> && item.containsKey('image') && item['image'] is String) {
+            return item['image'] as String;
+          }
+          // Handle cases where 'image' might be missing or not a String
+          // You might want to log this or filter out invalid entries
+          print('Warning: Invalid wallpaper item found: $item');
+          return ''; // Return an empty string or null to filter out later
+        }).where((url) => url.isNotEmpty).toList(); // Filter out empty strings
+
         setState(() {
-          wallpaperImages = data.cast<String>();
+          wallpaperImages = fetchedImages;
           isLoading = false;
         });
       } else {
@@ -130,6 +144,8 @@ class _WallpapersPageState extends State<WallpapersPage> {
                       itemCount: wallpaperImages.length,
                       itemBuilder: (context, index) {
                         final imagePath = wallpaperImages[index];
+                        // The images from the new API are always network images,
+                        // so the 'isNetwork' check becomes less critical but still valid.
                         final isNetwork = imagePath.startsWith('http');
 
                         return GestureDetector(
@@ -137,6 +153,7 @@ class _WallpapersPageState extends State<WallpapersPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
+                                // Assuming FullScreenLocalImage can handle network image URLs
                                 builder: (_) => FullScreenLocalImage(imagePath: imagePath),
                               ),
                             );
@@ -163,7 +180,7 @@ class _WallpapersPageState extends State<WallpapersPage> {
                                     },
                                   )
                                 : Image.asset(
-                                    imagePath,
+                                    imagePath, // This path would now only be used for local assets if any
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Icon(Icons.error, color: Colors.red);
