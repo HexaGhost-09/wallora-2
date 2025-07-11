@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:ui'; // Import for ImageFilter
 
-import 'full_screen_image.dart';
+import 'full_screen_image.dart'; // Assuming this file exists and is correctly imported
 
 class WallpapersPage extends StatefulWidget {
   const WallpapersPage({super.key});
@@ -59,9 +59,17 @@ class _WallpapersPageState extends State<WallpapersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wallpapers'),
+        // Updated: Make title bold and centered, matching CategoriesPage
+        title: const Text(
+          'Wallpapers',
+          style: TextStyle(
+            color: Colors.white, // Keep white color for consistency
+            fontWeight: FontWeight.bold, // Make text bold
+          ),
+        ),
+        centerTitle: true, // Center the title
         backgroundColor: Colors.transparent, // Make AppBar background transparent
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.white, // Color for icons and title text
         elevation: 0, // Remove shadow
         flexibleSpace: ClipRect( // ClipRect is important for BackdropFilter
           child: BackdropFilter(
