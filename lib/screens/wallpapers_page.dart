@@ -122,8 +122,9 @@ class _WallpapersPageState extends State<WallpapersPage> {
                   : RefreshIndicator( // Added RefreshIndicator for pull-to-refresh
                       onRefresh: _fetchWallpapers, // Call _fetchWallpapers when pulled down
                       child: GridView.builder(
-                        padding: EdgeInsets.only(
-                          top: AppBar().preferredSize.height + MediaQuery.of(context).padding.top + 10,
+                        // Removed redundant top padding calculation
+                        padding: const EdgeInsets.only(
+                          top: 10, // Adjusted to remove the extra space
                           left: 10,
                           right: 10,
                           bottom: 10,
