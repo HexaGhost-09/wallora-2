@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui'; // Required for ImageFilter
 import 'package:cached_network_image/cached_network_image.dart'; // Added for image caching
+import 'update_service.dart'; // Import the update service
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -15,14 +16,29 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _autoWallpaper = false;
   double _downloadQuality = 1.0; // 0.0 = Low, 0.5 = Medium, 1.0 = High
   String _selectedLanguage = 'English';
+  String _currentVersion = 'Loading...';
+  bool _isCheckingForUpdates = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentVersion();
+  }
+
+  Future<void> _loadCurrentVersion() async {
+    final version = await UpdateService.getCurrentVersion();
+    setState(() {
+      _currentVersion = version;
+    });
+  }
 
   // Sample data for settings sections
-  final List<Map<String, dynamic>> _settingsData = [
+  List<Map<String, dynamic>> get _settingsData => [
     {
       'title': 'Display',
       'icon': Icons.display_settings,
       'items': [
-        {'title': 'Dark Mode', 'type': 'switch', 'value': true},
+        {'title': 'Dark Mode', 'type': 'switch', 'value': _darkMode},
         {'title': 'Theme Color', 'type': 'navigation', 'subtitle': 'Deep Purple'},
       ]
     },
@@ -30,8 +46,8 @@ class _SettingsPageState extends State<SettingsPage> {
       'title': 'Wallpaper',
       'icon': Icons.wallpaper,
       'items': [
-        {'title': 'Download Quality', 'type': 'slider', 'value': 1.0},
-        {'title': 'Auto Wallpaper', 'type': 'switch', 'value': false},
+        {'title': 'Download Quality', 'type': 'slider', 'value': _downloadQuality},
+        {'title': 'Auto Wallpaper', 'type': 'switch', 'value': _autoWallpaper},
         {'title': 'Download Location', 'type': 'navigation', 'subtitle': 'Internal Storage'},
       ]
     },
@@ -39,7 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
       'title': 'Notifications',
       'icon': Icons.notifications,
       'items': [
-        {'title': 'Push Notifications', 'type': 'switch', 'value': true},
+        {'title': 'Push Notifications', 'type': 'switch', 'value': _notifications},
         {'title': 'New Wallpapers', 'type': 'switch', 'value': true},
         {'title': 'Updates', 'type': 'switch', 'value': false},
       ]
@@ -57,7 +73,8 @@ class _SettingsPageState extends State<SettingsPage> {
       'title': 'About',
       'icon': Icons.info,
       'items': [
-        {'title': 'Version', 'type': 'navigation', 'subtitle': '1.0.0'},
+        {'title': 'Version', 'type': 'navigation', 'subtitle': _currentVersion},
+        {'title': 'Check for Updates', 'type': 'update_action'},
         {'title': 'Privacy Policy', 'type': 'navigation'},
         {'title': 'Terms of Service', 'type': 'navigation'},
         {'title': 'Rate App', 'type': 'action'},
@@ -71,11 +88,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return 'High';
   }
 
-  void _showSnackBar(String message) {
+  void _showSnackBar(String message, {Color? backgroundColor}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: backgroundColor ?? Colors.deepPurple,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -163,6 +180,38 @@ class _SettingsPageState extends State<SettingsPage> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         );
       
+      case 'update_action':
+        return ListTile(
+          title: Text(
+            item['title'],
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          trailing: _isCheckingForUpdates
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.deepPurpleAccent,
+                  ),
+                )
+              : const Icon(Icons.system_update, color: Colors.deepPurpleAccent, size: 20),
+          onTap: _isCheckingForUpdates 
+              ? null 
+              : () async {
+                  setState(() {
+                    _isCheckingForUpdates = true;
+                  });
+                  
+                  await UpdateService.checkForUpdatesManually(context);
+                  
+                  setState(() {
+                    _isCheckingForUpdates = false;
+                  });
+                },
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        );
+      
       case 'action':
         return ListTile(
           title: Text(
@@ -170,7 +219,11 @@ class _SettingsPageState extends State<SettingsPage> {
             style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
           onTap: () {
-            _showSnackBar('${item['title']} executed');
+            if (item['title'] == 'Clear Cache') {
+              _showClearCacheDialog();
+            } else {
+              _showSnackBar('${item['title']} executed');
+            }
           },
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         );
@@ -178,6 +231,49 @@ class _SettingsPageState extends State<SettingsPage> {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  void _showClearCacheDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            'Clear Cache',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Are you sure you want to clear the cache? This will remove all cached images and data.',
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey[400]),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showSnackBar('Cache cleared successfully', backgroundColor: Colors.green);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Clear'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

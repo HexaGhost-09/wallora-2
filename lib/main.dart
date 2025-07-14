@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/wallpapers_page.dart'; // Import the WallpapersPage
 import 'screens/categories_page.dart'; // Import the CategoriesPage
 import 'screens/settings/settings_page.dart'; // Import the SettingsPage
+import 'screens/settings/update_service.dart'; // Import the UpdateService
 import 'widgets/bottom_nav_bar.dart'; // Import the BottomNavBar component
 
 void main() {
@@ -24,6 +25,15 @@ class _WallpaperAppState extends State<WallpaperApp> {
     CategoriesPage(),
     SettingsPage(), // Added SettingsPage
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Schedule automatic update check after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkForUpdatesAutomatically(context);
+    });
+  }
 
   // Function to handle item taps on the bottom navigation bar
   void _onItemTapped(int index) {
