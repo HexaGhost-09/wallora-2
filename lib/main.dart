@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/wallpapers_page.dart'; // Import the WallpapersPage
 import 'screens/categories_page.dart'; // Import the CategoriesPage
+import 'screens/settings/settings_page.dart'; // Import the SettingsPage
 import 'widgets/bottom_nav_bar.dart'; // Import the BottomNavBar component
 
 void main() {
@@ -21,6 +22,7 @@ class _WallpaperAppState extends State<WallpaperApp> {
   static const List<Widget> _pages = <Widget>[
     WallpapersPage(),
     CategoriesPage(),
+    SettingsPage(), // Added SettingsPage
   ];
 
   // Function to handle item taps on the bottom navigation bar

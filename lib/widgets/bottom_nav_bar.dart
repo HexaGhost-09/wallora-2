@@ -50,6 +50,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
                   icon: Icon(Icons.category),
                   label: 'Categories',
                 ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings),
+                  label: 'Settings',
+                ),
               ],
             ),
           ),
