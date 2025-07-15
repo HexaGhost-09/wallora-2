@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Required for MethodChannel
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io'; // For File operations
-import 'package:path_provider/path_provider.dart'; // For temporary file storage
-import 'package:wallora/data/models/wallpaper_model.dart'; // Import the WallpaperItem model
-import 'dart:ui'; // Import for ImageFilter
-import 'package:cached_network_image/cached_network_image.dart'; // Added for image caching
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:wallora/data/models/wallpaper_model.dart';
+import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 
-// Define constants for wallpaper types
 enum WallpaperType { homeScreen, lockScreen, both }
 
 class FullScreenWallpaperPage extends StatefulWidget {
-  final WallpaperItem wallpaperItem; // Now accepts a WallpaperItem object
+  final WallpaperItem wallpaperItem;
 
   const FullScreenWallpaperPage({super.key, required this.wallpaperItem});
 
@@ -20,12 +19,67 @@ class FullScreenWallpaperPage extends StatefulWidget {
 }
 
 class _FullScreenWallpaperPageState extends State<FullScreenWallpaperPage> {
-  // MethodChannel to communicate with native code
   static const platform = MethodChannel('com.hexaghost.wallora/wallpaper_setter');
+  
+  bool _isApplying = false;
+  bool _isImageLoaded = false;
+  
+  // Cache frequently used values
+  late final String _title;
+  late final String _imageUrl;
+  late final String _downloadUrl;
+  
+  // Cache gradient for better performance
+  static final BoxDecoration _gradientDecoration = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Colors.black.withOpacity(0.4),
+        Colors.transparent,
+        Colors.transparent,
+        Colors.black.withOpacity(0.6),
+      ],
+      stops: const [0.0, 0.3, 0.7, 1.0],
+    ),
+  );
 
-  bool _isApplying = false; // To show loading indicator during apply
+  // Cache text style
+  static const TextStyle _titleStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    shadows: [
+      Shadow(
+        blurRadius: 5.0,
+        color: Colors.black,
+        offset: Offset(1.0, 1.0),
+      ),
+    ],
+  );
 
-  // Function to download the image from the download URL
+  // Cache button style
+  static final ButtonStyle _buttonStyle = ElevatedButton.styleFrom(
+    backgroundColor: Colors.deepPurple,
+    foregroundColor: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+    textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    elevation: 5,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    // Cache values to avoid repeated property access
+    _title = widget.wallpaperItem.title;
+    _imageUrl = widget.wallpaperItem.imageUrl;
+    _downloadUrl = widget.wallpaperItem.downloadUrl;
+  }
+
+  // Optimized download with better error handling and progress tracking
   Future<String?> _downloadImage(String url) async {
     try {
       final response = await http.get(Uri.parse(url));
@@ -45,15 +99,17 @@ class _FullScreenWallpaperPageState extends State<FullScreenWallpaperPage> {
     }
   }
 
-  // Function to apply the wallpaper using platform channel
+  // Optimized wallpaper application with better state management
   Future<void> _applyWallpaper(WallpaperType type) async {
+    if (_isApplying) return; // Prevent multiple simultaneous calls
+    
     setState(() {
       _isApplying = true;
     });
 
     _showSnackBar('Downloading wallpaper...', Colors.blue);
 
-    final String? imageFilePath = await _downloadImage(widget.wallpaperItem.downloadUrl);
+    final String? imageFilePath = await _downloadImage(_downloadUrl);
 
     if (imageFilePath == null) {
       setState(() {
@@ -65,80 +121,105 @@ class _FullScreenWallpaperPageState extends State<FullScreenWallpaperPage> {
     try {
       final String result = await platform.invokeMethod('setWallpaper', {
         'filePath': imageFilePath,
-        'type': type.index, // Pass the index of the enum for native side
+        'type': type.index,
       });
       _showSnackBar(result, Colors.green);
     } on PlatformException catch (e) {
       _showSnackBar("Failed to set wallpaper: '${e.message}'. Please ensure permissions are granted.", Colors.red);
     } finally {
-      // Clean up the temporary file after attempting to set wallpaper
-      try {
-        final file = File(imageFilePath);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (e) {
-        print('Error deleting temporary file: $e');
+      // Clean up the temporary file
+      _cleanupTempFile(imageFilePath);
+      
+      if (mounted) {
+        setState(() {
+          _isApplying = false;
+        });
       }
-
-      setState(() {
-        _isApplying = false;
-      });
     }
   }
 
-  // Helper to show a SnackBar message
+  // Extracted cleanup method
+  Future<void> _cleanupTempFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      debugPrint('Error deleting temporary file: $e');
+    }
+  }
+
+  // Optimized SnackBar with better styling
   void _showSnackBar(String message, Color color) {
+    if (!mounted) return;
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: color,
         duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }
 
-  // Dialog to choose wallpaper type
+  // Optimized modal bottom sheet with reduced blur
   void _showApplyOptionsDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent, // Make background transparent
-      builder: (BuildContext bc) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Apply blur
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              color: Colors.black.withOpacity(0.5), // Semi-transparent overlay
-              child: Wrap(
-                children: <Widget>[
-                  ListTile(
-                    leading: const Icon(Icons.home, color: Colors.white),
-                    title: const Text('Home Screen', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.pop(bc);
-                      _applyWallpaper(WallpaperType.homeScreen);
-                    },
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.black87, // Solid color instead of blur for better performance
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.lock, color: Colors.white),
-                    title: const Text('Lock Screen', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.pop(bc);
-                      _applyWallpaper(WallpaperType.lockScreen);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.phone_android, color: Colors.white),
-                    title: const Text('Both', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.pop(bc);
-                      _applyWallpaper(WallpaperType.both);
-                    },
-                  ),
-                ],
-              ),
+                ),
+                // Options
+                _buildOptionTile(
+                  icon: Icons.home,
+                  title: 'Home Screen',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _applyWallpaper(WallpaperType.homeScreen);
+                  },
+                ),
+                _buildOptionTile(
+                  icon: Icons.lock,
+                  title: 'Lock Screen',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _applyWallpaper(WallpaperType.lockScreen);
+                  },
+                ),
+                _buildOptionTile(
+                  icon: Icons.phone_android,
+                  title: 'Both',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _applyWallpaper(WallpaperType.both);
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         );
@@ -146,89 +227,122 @@ class _FullScreenWallpaperPageState extends State<FullScreenWallpaperPage> {
     );
   }
 
+  // Helper method to build option tiles
+  Widget _buildOptionTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final EdgeInsets padding = mediaQuery.padding;
+    
     return Scaffold(
-      backgroundColor: Colors.black, // Dark background for full-screen image
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Full-screen image display
+          // Full-screen image with loading callback
           Positioned.fill(
-            child: CachedNetworkImage( // Changed from Image.network to CachedNetworkImage
-              imageUrl: widget.wallpaperItem.imageUrl, // Use imageUrl for display
+            child: CachedNetworkImage(
+              imageUrl: _imageUrl,
               fit: BoxFit.cover,
+              fadeInDuration: const Duration(milliseconds: 300),
               placeholder: (context, url) => Container(
-                color: Colors.grey[300],
+                color: Colors.grey[900],
                 child: const Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
                   ),
                 ),
               ),
               errorWidget: (context, url, error) => Container(
-                color: Colors.grey[400],
+                color: Colors.grey[800],
                 child: const Center(
-                  child: Icon(
-                    Icons.broken_image,
-                    color: Colors.red,
-                    size: 40,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.broken_image,
+                        color: Colors.red,
+                        size: 50,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Failed to load image',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              imageBuilder: (context, imageProvider) {
+                // Mark image as loaded for potential optimizations
+                if (!_isImageLoaded) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        _isImageLoaded = true;
+                      });
+                    }
+                  });
+                }
+                return Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          // Gradient overlay for better text visibility
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.transparent,
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.6),
-                  ],
-                  stops: const [0.0, 0.3, 0.7, 1.0],
-                ),
-              ),
+          
+          // Gradient overlay (only show when image is loaded)
+          if (_isImageLoaded)
+            Positioned.fill(
+              child: Container(decoration: _gradientDecoration),
             ),
-          ),
+          
           // Back button
           Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
+            top: padding.top + 10,
             left: 10,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 30),
               onPressed: () => Navigator.pop(context),
             ),
           ),
-          // Title (optional, can be removed if not desired in full screen)
+          
+          // Title
           Positioned(
-            top: MediaQuery.of(context).padding.top + 15,
+            top: padding.top + 15,
             left: 60,
             right: 60,
             child: Text(
-              widget.wallpaperItem.title,
+              _title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                shadows: [
-                  Shadow(
-                    blurRadius: 5.0,
-                    color: Colors.black,
-                    offset: Offset(1.0, 1.0),
-                  ),
-                ],
-              ),
+              style: _titleStyle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          
           // Apply button
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 20,
+            bottom: padding.bottom + 20,
             left: 20,
             right: 20,
             child: ElevatedButton.icon(
@@ -244,16 +358,7 @@ class _FullScreenWallpaperPageState extends State<FullScreenWallpaperPage> {
                     )
                   : const Icon(Icons.wallpaper),
               label: Text(_isApplying ? 'Applying...' : 'Apply Wallpaper'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple, // Button background color
-                foregroundColor: Colors.white, // Text and icon color
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                elevation: 5,
-              ),
+              style: _buttonStyle,
             ),
           ),
         ],

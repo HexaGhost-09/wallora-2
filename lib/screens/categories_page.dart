@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:ui'; // Required for ImageFilter
-import 'package:cached_network_image/cached_network_image.dart'; // Added for image caching
+import 'package:cached_network_image/cached_network_image.dart';
 
 // Define a simple model for a Category item based on your API example
 class CategoryItem {
@@ -28,8 +28,141 @@ class CategoryItem {
   }
 }
 
-// This is the CategoriesPage widget.
-// It's now a StatefulWidget to manage its own data fetching state.
+// Optimized AppBar widget to prevent rebuilds
+class OptimizedAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const OptimizedAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text(
+        'Categories',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: true,
+      flexibleSpace: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            color: Colors.black.withOpacity(0.3),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+// Optimized Category Card widget with better memory management
+class CategoryCard extends StatelessWidget {
+  final CategoryItem category;
+  final VoidCallback onTap;
+
+  const CategoryCard({
+    super.key,
+    required this.category,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Optimized image loading with memory cache management
+            CachedNetworkImage(
+              imageUrl: category.thumbnail,
+              fit: BoxFit.cover,
+              memCacheWidth: 300, // Limit memory cache size
+              memCacheHeight: 300,
+              maxWidthDiskCache: 600, // Limit disk cache size
+              maxHeightDiskCache: 600,
+              placeholder: (context, url) => Container(
+                color: Colors.grey[300],
+                child: const Center(
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
+                    ),
+                  ),
+                ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey[400],
+                child: const Center(
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.red,
+                    size: 40,
+                  ),
+                ),
+              ),
+            ),
+            // Optimized gradient overlay
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black87,
+                  ],
+                  stops: [0.6, 1.0],
+                ),
+              ),
+            ),
+            // Category title with optimized text rendering
+            Positioned(
+              bottom: 10,
+              left: 10,
+              right: 10,
+              child: Text(
+                category.title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 3.0,
+                      color: Colors.black,
+                      offset: Offset(1.0, 1.0),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Main Categories Page with optimizations
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
 
@@ -37,10 +170,15 @@ class CategoriesPage extends StatefulWidget {
   State<CategoriesPage> createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage> {
+class _CategoriesPageState extends State<CategoriesPage>
+    with AutomaticKeepAliveClientMixin {
   List<CategoryItem> categories = [];
   bool isLoading = true;
   String? errorMessage;
+
+  // Keep the state alive to prevent rebuilds when navigating
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -49,6 +187,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   Future<void> _fetchCategories() async {
+    if (!mounted) return;
+
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -57,69 +197,79 @@ class _CategoriesPageState extends State<CategoriesPage> {
     const String apiUrl = 'https://wallora-wallpapers.deno.dev/categories';
 
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'max-age=300', // Cache for 5 minutes
+        },
+      );
+
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
 
-        final List<CategoryItem> fetchedCategories = data.map((item) {
-          try {
-            return CategoryItem.fromJson(item as Map<String, dynamic>);
-          } catch (e) {
-            print('Error parsing category item: $e, item: $item');
-            return null;
-          }
-        }).whereType<CategoryItem>().toList(); // Filter out nulls
+        final List<CategoryItem> fetchedCategories = data
+            .map((item) {
+              try {
+                return CategoryItem.fromJson(item as Map<String, dynamic>);
+              } catch (e) {
+                debugPrint('Error parsing category item: $e, item: $item');
+                return null;
+              }
+            })
+            .whereType<CategoryItem>()
+            .toList();
 
-        setState(() {
-          categories = fetchedCategories;
-          isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            categories = fetchedCategories;
+            isLoading = false;
+          });
+        }
       } else {
+        if (mounted) {
+          setState(() {
+            errorMessage = 'Failed to load categories: ${response.statusCode}';
+            isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
-          errorMessage = 'Failed to load categories: ${response.statusCode}';
+          errorMessage = 'Error fetching categories: $e';
           isLoading = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Error fetching categories: $e';
-        isLoading = false;
-      });
     }
+  }
+
+  void _onCategoryTap(CategoryItem category) {
+    // TODO: Navigate to a page displaying wallpapers for this category
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tapped on ${category.title} category!'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // The Scaffold provides the basic visual structure for a Material Design app.
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+
     return Scaffold(
-      // AppBar for the top of the screen, styled to match the WallpapersPage.
-      appBar: AppBar(
-        title: const Text(
-          'Categories',
-          style: TextStyle(
-            color: Colors.white, // Text color for the app bar title
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.transparent, // Make AppBar background transparent
-        foregroundColor: Colors.white, // Color for icons and title text
-        elevation: 0, // Remove shadow beneath the app bar
-        centerTitle: true, // Center the title
-        // Flexible space for the blurred background effect, copied from WallpapersPage.
-        flexibleSpace: ClipRect( // ClipRect is important for BackdropFilter to work correctly
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Apply blur effect
-            child: Container(
-              color: Colors.black.withOpacity(0.3), // Semi-transparent overlay for glass effect
-            ),
-          ),
-        ),
-        // Removed the actions property as the refresh button is no longer needed
-      ),
-      // The body of the page, now displaying fetched categories or loading/error states.
+      appBar: const OptimizedAppBar(),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+            )
           : errorMessage != null
               ? Center(
                   child: Padding(
@@ -145,103 +295,25 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   ? const Center(
                       child: Text('No categories found. Try refreshing.'),
                     )
-                  : RefreshIndicator( // Added RefreshIndicator for pull-to-refresh
-                      onRefresh: _fetchCategories, // Call _fetchCategories when pulled down
+                  : RefreshIndicator(
+                      onRefresh: _fetchCategories,
                       child: GridView.builder(
-                        // Removed redundant top padding calculation
-                        padding: const EdgeInsets.only(
-                          top: 10, // Adjusted to remove the extra space
-                          left: 10,
-                          right: 10,
-                          bottom: 10,
-                        ),
+                        padding: const EdgeInsets.all(10),
+                        physics: const BouncingScrollPhysics(), // Smoother scrolling
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // Two columns for categories
+                          crossAxisCount: 2,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
-                          childAspectRatio: 1.0, // Square aspect ratio for category cards
+                          childAspectRatio: 1.0,
                         ),
                         itemCount: categories.length,
+                        // Optimize item builder to prevent unnecessary rebuilds
                         itemBuilder: (context, index) {
                           final category = categories[index];
-                          return GestureDetector(
-                            onTap: () {
-                              // TODO: Navigate to a page displaying wallpapers for this category
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Tapped on ${category.title} category!')),
-                              );
-                            },
-                            child: Card(
-                              elevation: 5,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              clipBehavior: Clip.antiAlias, // Ensures content is clipped to border radius
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  // Category thumbnail image
-                                  CachedNetworkImage(
-                                    imageUrl: category.thumbnail,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(
-                                      color: Colors.grey[300],
-                                      child: const Center(
-                                        child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey),
-                                        ),
-                                      ),
-                                    ),
-                                    errorWidget: (context, url, error) => Container(
-                                      color: Colors.grey[400],
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.broken_image,
-                                          color: Colors.red,
-                                          size: 40,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  // Gradient overlay for text readability
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.black.withOpacity(0.7),
-                                        ],
-                                        stops: const [0.6, 1.0],
-                                      ),
-                                    ),
-                                  ),
-                                  // Category title
-                                  Positioned(
-                                    bottom: 10,
-                                    left: 10,
-                                    right: 10,
-                                    child: Text(
-                                      category.title,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        shadows: [
-                                          Shadow(
-                                            blurRadius: 3.0,
-                                            color: Colors.black,
-                                            offset: Offset(1.0, 1.0),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          return CategoryCard(
+                            key: ValueKey(category.id), // Add key for better performance
+                            category: category,
+                            onTap: () => _onCategoryTap(category),
                           );
                         },
                       ),

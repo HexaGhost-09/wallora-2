@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui'; // Required for ImageFilter
-import 'package:cached_network_image/cached_network_image.dart'; // Added for image caching
-import 'update_service.dart'; // Import the update service
+import 'package:cached_network_image/cached_network_image.dart';
+import 'update_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -14,73 +14,82 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _darkMode = true;
   bool _notifications = true;
   bool _autoWallpaper = false;
-  double _downloadQuality = 1.0; // 0.0 = Low, 0.5 = Medium, 1.0 = High
+  double _downloadQuality = 1.0;
   String _selectedLanguage = 'English';
   String _currentVersion = 'Loading...';
   bool _isCheckingForUpdates = false;
 
+  late final List<Map<String, dynamic>> _settingsData;
+
   @override
   void initState() {
     super.initState();
+    _initializeSettingsData();
     _loadCurrentVersion();
+  }
+
+  void _initializeSettingsData() {
+    _settingsData = [
+      {
+        'title': 'Display',
+        'icon': Icons.display_settings,
+        'items': [
+          {'title': 'Dark Mode', 'type': 'switch', 'value': _darkMode},
+          {'title': 'Theme Color', 'type': 'navigation', 'subtitle': 'Deep Purple'},
+        ]
+      },
+      {
+        'title': 'Wallpaper',
+        'icon': Icons.wallpaper,
+        'items': [
+          {'title': 'Download Quality', 'type': 'slider', 'value': _downloadQuality},
+          {'title': 'Auto Wallpaper', 'type': 'switch', 'value': _autoWallpaper},
+          {'title': 'Download Location', 'type': 'navigation', 'subtitle': 'Internal Storage'},
+        ]
+      },
+      {
+        'title': 'Notifications',
+        'icon': Icons.notifications,
+        'items': [
+          {'title': 'Push Notifications', 'type': 'switch', 'value': _notifications},
+          {'title': 'New Wallpapers', 'type': 'switch', 'value': true},
+          {'title': 'Updates', 'type': 'switch', 'value': false},
+        ]
+      },
+      {
+        'title': 'General',
+        'icon': Icons.settings,
+        'items': [
+          {'title': 'Language', 'type': 'navigation', 'subtitle': 'English'},
+          {'title': 'Cache Size', 'type': 'navigation', 'subtitle': '124 MB'},
+          {'title': 'Clear Cache', 'type': 'action'},
+        ]
+      },
+      {
+        'title': 'About',
+        'icon': Icons.info,
+        'items': [
+          {'title': 'Version', 'type': 'navigation', 'subtitle': _currentVersion},
+          {'title': 'Check for Updates', 'type': 'update_action'},
+          {'title': 'Privacy Policy', 'type': 'navigation'},
+          {'title': 'Terms of Service', 'type': 'navigation'},
+          {'title': 'Rate App', 'type': 'action'},
+        ]
+      }
+    ];
   }
 
   Future<void> _loadCurrentVersion() async {
     final version = await UpdateService.getCurrentVersion();
-    setState(() {
-      _currentVersion = version;
-    });
-  }
-
-  // Sample data for settings sections
-  List<Map<String, dynamic>> get _settingsData => [
-    {
-      'title': 'Display',
-      'icon': Icons.display_settings,
-      'items': [
-        {'title': 'Dark Mode', 'type': 'switch', 'value': _darkMode},
-        {'title': 'Theme Color', 'type': 'navigation', 'subtitle': 'Deep Purple'},
-      ]
-    },
-    {
-      'title': 'Wallpaper',
-      'icon': Icons.wallpaper,
-      'items': [
-        {'title': 'Download Quality', 'type': 'slider', 'value': _downloadQuality},
-        {'title': 'Auto Wallpaper', 'type': 'switch', 'value': _autoWallpaper},
-        {'title': 'Download Location', 'type': 'navigation', 'subtitle': 'Internal Storage'},
-      ]
-    },
-    {
-      'title': 'Notifications',
-      'icon': Icons.notifications,
-      'items': [
-        {'title': 'Push Notifications', 'type': 'switch', 'value': _notifications},
-        {'title': 'New Wallpapers', 'type': 'switch', 'value': true},
-        {'title': 'Updates', 'type': 'switch', 'value': false},
-      ]
-    },
-    {
-      'title': 'General',
-      'icon': Icons.settings,
-      'items': [
-        {'title': 'Language', 'type': 'navigation', 'subtitle': 'English'},
-        {'title': 'Cache Size', 'type': 'navigation', 'subtitle': '124 MB'},
-        {'title': 'Clear Cache', 'type': 'action'},
-      ]
-    },
-    {
-      'title': 'About',
-      'icon': Icons.info,
-      'items': [
-        {'title': 'Version', 'type': 'navigation', 'subtitle': _currentVersion},
-        {'title': 'Check for Updates', 'type': 'update_action'},
-        {'title': 'Privacy Policy', 'type': 'navigation'},
-        {'title': 'Terms of Service', 'type': 'navigation'},
-        {'title': 'Rate App', 'type': 'action'},
-      ]
+    if (mounted) {
+      setState(() {
+        _currentVersion = version;
+        final aboutSection = _settingsData.firstWhere((section) => section['title'] == 'About');
+        final versionItem = aboutSection['items'].firstWhere((item) => item['title'] == 'Version');
+        versionItem['subtitle'] = version;
+      });
     }
-  ];
+  }
 
   String _getQualityText(double value) {
     if (value <= 0.33) return 'Low';
@@ -89,6 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showSnackBar(String message, {Color? backgroundColor}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -102,14 +112,10 @@ class _SettingsPageState extends State<SettingsPage> {
     switch (item['type']) {
       case 'switch':
         return SwitchListTile(
-          title: Text(
-            item['title'],
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          title: Text(item['title'], style: const TextStyle(color: Colors.white, fontSize: 16)),
           value: item['value'] ?? false,
           onChanged: (bool value) {
             setState(() {
-              // Handle switch changes based on title
               switch (item['title']) {
                 case 'Dark Mode':
                   _darkMode = value;
@@ -120,23 +126,20 @@ class _SettingsPageState extends State<SettingsPage> {
                 case 'Auto Wallpaper':
                   _autoWallpaper = value;
                   break;
-                // Add more cases as needed
               }
+              item['value'] = value;
             });
             _showSnackBar('${item['title']} ${value ? 'enabled' : 'disabled'}');
           },
           activeColor: Colors.deepPurpleAccent,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         );
-      
+
       case 'slider':
         return Column(
           children: [
             ListTile(
-              title: Text(
-                item['title'],
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-              ),
+              title: Text(item['title'], style: const TextStyle(color: Colors.white, fontSize: 16)),
               subtitle: Text(
                 _getQualityText(_downloadQuality),
                 style: TextStyle(color: Colors.grey[400], fontSize: 14),
@@ -160,64 +163,47 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ],
         );
-      
+
       case 'navigation':
         return ListTile(
-          title: Text(
-            item['title'],
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          title: Text(item['title'], style: const TextStyle(color: Colors.white, fontSize: 16)),
           subtitle: item['subtitle'] != null
-              ? Text(
-                  item['subtitle'],
-                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
-                )
+              ? Text(item['subtitle'], style: TextStyle(color: Colors.grey[400], fontSize: 14))
               : null,
           trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
-          onTap: () {
-            _showSnackBar('${item['title']} tapped');
-          },
+          onTap: () => _showSnackBar('${item['title']} tapped'),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         );
-      
+
       case 'update_action':
         return ListTile(
-          title: Text(
-            item['title'],
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          title: Text(item['title'], style: const TextStyle(color: Colors.white, fontSize: 16)),
           trailing: _isCheckingForUpdates
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.deepPurpleAccent,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.deepPurpleAccent),
                 )
               : const Icon(Icons.system_update, color: Colors.deepPurpleAccent, size: 20),
-          onTap: _isCheckingForUpdates 
-              ? null 
+          onTap: _isCheckingForUpdates
+              ? null
               : () async {
                   setState(() {
                     _isCheckingForUpdates = true;
                   });
-                  
                   await UpdateService.checkForUpdatesManually(context);
-                  
-                  setState(() {
-                    _isCheckingForUpdates = false;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _isCheckingForUpdates = false;
+                    });
+                  }
                 },
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         );
-      
+
       case 'action':
         return ListTile(
-          title: Text(
-            item['title'],
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          title: Text(item['title'], style: const TextStyle(color: Colors.white, fontSize: 16)),
           onTap: () {
             if (item['title'] == 'Clear Cache') {
               _showClearCacheDialog();
@@ -227,7 +213,7 @@ class _SettingsPageState extends State<SettingsPage> {
           },
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         );
-      
+
       default:
         return const SizedBox.shrink();
     }
@@ -240,10 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
         return AlertDialog(
           backgroundColor: Colors.grey[900],
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text(
-            'Clear Cache',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
+          title: const Text('Clear Cache', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: const Text(
             'Are you sure you want to clear the cache? This will remove all cached images and data.',
             style: TextStyle(color: Colors.white),
@@ -251,10 +234,7 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey[400]),
-              ),
+              child: Text('Cancel', style: TextStyle(color: Colors.grey[400])),
             ),
             ElevatedButton(
               onPressed: () {
@@ -264,9 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: const Text('Clear'),
             ),
@@ -280,13 +258,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: const Text('Settings', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -294,19 +266,12 @@ class _SettingsPageState extends State<SettingsPage> {
         flexibleSpace: ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
+            child: Container(color: Colors.black.withOpacity(0.3)),
           ),
         ),
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.only(
-          top: 10,
-          left: 10,
-          right: 10,
-          bottom: 10,
-        ),
+        padding: const EdgeInsets.all(10),
         itemCount: _settingsData.length,
         itemBuilder: (context, index) {
           final section = _settingsData[index];
@@ -314,14 +279,11 @@ class _SettingsPageState extends State<SettingsPage> {
             padding: const EdgeInsets.only(bottom: 20),
             child: Card(
               elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               color: Colors.grey[900],
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Section Header
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -333,35 +295,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          section['icon'],
-                          color: Colors.deepPurpleAccent,
-                          size: 24,
-                        ),
+                        Icon(section['icon'], color: Colors.deepPurpleAccent, size: 24),
                         const SizedBox(width: 12),
-                        Text(
-                          section['title'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text(section['title'], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
-                  // Section Items
                   ...section['items'].map<Widget>((item) {
                     return Column(
                       children: [
                         _buildSettingItem(item),
                         if (item != section['items'].last)
-                          Divider(
-                            color: Colors.grey[700],
-                            height: 1,
-                            indent: 20,
-                            endIndent: 20,
-                          ),
+                          Divider(color: Colors.grey[700], height: 1, indent: 20, endIndent: 20),
                       ],
                     );
                   }).toList(),

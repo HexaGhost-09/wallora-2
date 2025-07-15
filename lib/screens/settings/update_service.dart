@@ -33,19 +33,38 @@ class UpdateService {
   static const String _repoUrl = 'https://api.github.com/repos/HexaGhost-09/wallora-2/releases/latest';
   static const String _lastCheckKey = 'last_update_check';
   
-  // Check for updates from GitHub releases
+  // Cache for version info to avoid repeated API calls
+  static String? _cachedCurrentVersion;
+  static UpdateInfo? _cachedUpdateInfo;
+  static DateTime? _lastUpdateCheck;
+  static const Duration _cacheExpiration = Duration(hours: 1);
+  
+  // HTTP client with timeout configuration
+  static final http.Client _httpClient = http.Client();
+  static const Duration _timeoutDuration = Duration(seconds: 10);
+  
+  // Check for updates from GitHub releases with caching
   static Future<UpdateInfo?> checkForUpdates() async {
     try {
-      final response = await http.get(
+      // Return cached result if it's still valid
+      if (_cachedUpdateInfo != null && 
+          _lastUpdateCheck != null && 
+          DateTime.now().difference(_lastUpdateCheck!) < _cacheExpiration) {
+        return _cachedUpdateInfo;
+      }
+
+      final response = await _httpClient.get(
         Uri.parse(_repoUrl),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
         },
-      );
+      ).timeout(_timeoutDuration);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return UpdateInfo.fromJson(data);
+        _cachedUpdateInfo = UpdateInfo.fromJson(data);
+        _lastUpdateCheck = DateTime.now();
+        return _cachedUpdateInfo;
       } else {
         print('Failed to check for updates: ${response.statusCode}');
         return null;
@@ -56,11 +75,10 @@ class UpdateService {
     }
   }
 
-  // Check if update is available by comparing versions
+  // Check if update is available by comparing versions with caching
   static Future<bool> isUpdateAvailable() async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
+      final currentVersion = await getCurrentVersion();
       
       final updateInfo = await checkForUpdates();
       if (updateInfo == null) return false;
@@ -77,10 +95,12 @@ class UpdateService {
     }
   }
 
-  // Compare two version strings (returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2)
+  // Optimized version comparison with early returns
   static int _compareVersions(String v1, String v2) {
-    final parts1 = v1.split('.').map(int.parse).toList();
-    final parts2 = v2.split('.').map(int.parse).toList();
+    if (v1 == v2) return 0;
+    
+    final parts1 = v1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final parts2 = v2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     
     final maxLength = parts1.length > parts2.length ? parts1.length : parts2.length;
     
@@ -95,16 +115,18 @@ class UpdateService {
     return 0;
   }
 
-  // Show update dialog
+  // Show update dialog with improved UI
   static void showUpdateDialog(BuildContext context, UpdateInfo updateInfo) {
+    if (!context.mounted) return;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: Colors.grey[900],
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Row(
+          title: const Row(
             children: [
               Icon(Icons.system_update, color: Colors.deepPurpleAccent),
               SizedBox(width: 10),
@@ -120,20 +142,20 @@ class UpdateService {
             children: [
               Text(
                 'Version ${updateInfo.version} is now available!',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               if (updateInfo.description.isNotEmpty) ...[
-                Text(
+                const Text(
                   'What\'s New:',
                   style: TextStyle(
                     color: Colors.deepPurpleAccent,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Container(
-                  constraints: BoxConstraints(maxHeight: 200),
+                  constraints: const BoxConstraints(maxHeight: 200),
                   child: SingleChildScrollView(
                     child: Text(
                       updateInfo.description,
@@ -146,7 +168,7 @@ class UpdateService {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 'Later',
                 style: TextStyle(color: Colors.grey[400]),
@@ -154,7 +176,7 @@ class UpdateService {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
                 _launchUrl(updateInfo.downloadUrl);
               },
               style: ElevatedButton.styleFrom(
@@ -164,7 +186,7 @@ class UpdateService {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text('Download'),
+              child: const Text('Download'),
             ),
           ],
         );
@@ -172,24 +194,32 @@ class UpdateService {
     );
   }
 
-  // Launch URL in browser
+  // Launch URL in browser with error handling
   static Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      print('Could not launch $url');
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        print('Could not launch $url');
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
     }
   }
 
-  // Check for updates automatically (call this on app startup)
+  // Check for updates automatically with debouncing
   static Future<void> checkForUpdatesAutomatically(BuildContext context) async {
+    if (!context.mounted) return;
+    
     try {
       final isAvailable = await isUpdateAvailable();
-      if (isAvailable) {
+      if (isAvailable && context.mounted) {
         final updateInfo = await checkForUpdates();
-        if (updateInfo != null) {
+        if (updateInfo != null && context.mounted) {
           // Show update dialog after a short delay to ensure UI is ready
-          Future.delayed(Duration(seconds: 2), () {
-            showUpdateDialog(context, updateInfo);
+          Future.delayed(const Duration(seconds: 2), () {
+            if (context.mounted) {
+              showUpdateDialog(context, updateInfo);
+            }
           });
         }
       }
@@ -198,17 +228,19 @@ class UpdateService {
     }
   }
 
-  // Manual update check (call this from settings)
+  // Manual update check with improved error handling
   static Future<void> checkForUpdatesManually(BuildContext context) async {
+    if (!context.mounted) return;
+    
     // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: Colors.grey[900],
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          content: Row(
+          content: const Row(
             children: [
               CircularProgressIndicator(color: Colors.deepPurpleAccent),
               SizedBox(width: 20),
@@ -224,42 +256,67 @@ class UpdateService {
 
     try {
       final isAvailable = await isUpdateAvailable();
-      Navigator.of(context).pop(); // Close loading dialog
-
-      if (isAvailable) {
-        final updateInfo = await checkForUpdates();
-        if (updateInfo != null) {
-          showUpdateDialog(context, updateInfo);
+      
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        if (isAvailable) {
+          final updateInfo = await checkForUpdates();
+          if (updateInfo != null && context.mounted) {
+            showUpdateDialog(context, updateInfo);
+          }
+        } else {
+          // Show "up to date" message
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('You\'re using the latest version!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         }
-      } else {
-        // Show "up to date" message
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You\'re using the latest version!'),
-            backgroundColor: Colors.green,
+          const SnackBar(
+            content: Text('Failed to check for updates. Please try again.'),
+            backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
         );
       }
-    } catch (e) {
-      Navigator.of(context).pop(); // Close loading dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to check for updates. Please try again.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
     }
   }
 
-  // Get current app version
+  // Get current app version with caching
   static Future<String> getCurrentVersion() async {
+    if (_cachedCurrentVersion != null) {
+      return _cachedCurrentVersion!;
+    }
+    
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      return packageInfo.version;
+      _cachedCurrentVersion = packageInfo.version;
+      return _cachedCurrentVersion!;
     } catch (e) {
       return 'Unknown';
     }
+  }
+  
+  // Clear cache method for testing or force refresh
+  static void clearCache() {
+    _cachedCurrentVersion = null;
+    _cachedUpdateInfo = null;
+    _lastUpdateCheck = null;
+  }
+  
+  // Dispose method to clean up resources
+  static void dispose() {
+    _httpClient.close();
+    clearCache();
   }
 }
