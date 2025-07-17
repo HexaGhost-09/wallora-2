@@ -1,4 +1,4 @@
-div align="center">
+<div align="center">
   <img src="assets/icon/app_icon.png" alt="Wallora Logo" width="120" height="120">
   <h1><b>Wallora 🖼️</b></h1>
 
