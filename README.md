@@ -1,5 +1,5 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/HexaGhost-09/wallora-2/main/assets/logo.png" alt="Wallora Logo" width="120" height="120">
+div align="center">
+  <img src="assets/icon/app_icon.png" alt="Wallora Logo" width="120" height="120">
   <h1><b>Wallora 🖼️</b></h1>
 
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
