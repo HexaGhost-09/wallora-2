@@ -1,6 +1,5 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/HexaGhost-09/wallora-2/main/assets/logo.png" alt="Wallora Logo" width="120" height="120">
-
   <h1><b>Wallora 🖼️</b></h1>
 
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
@@ -20,14 +19,10 @@
   <img src="https://img.shields.io/badge/Made%20with-❤️-red" alt="Made with love">
 </div>
 
-<br>
-
 <div align="center">
   <h3>A beautiful, fast, and modern wallpaper app built with Flutter + Supabase</h3>
   <p>🎨 Discover stunning HD wallpapers • 🔍 Smart search • ❤️ Save favorites • 🌙 Dark mode</p>
 </div>
-
-<br>
 
 <div align="center">
   <a href="https://hexaghost-09.itch.io/wallora">📱 Download on Itch.io</a> •
@@ -40,10 +35,7 @@
 ## 📥 Download
 
 <div align="center">
-
-  <a href="https://hexaghost-09.itch.io/wallora">📱 Download on Itch.io</a>
-
-  <br><br>
+  <a href="https://hexaghost-09.itch.io/wallora">📱 Download on Itch.io</a><br><br>
 
   <a href="https://sourceforge.net/projects/wallora-android-app/">
     <img src="https://sourceforge.net/sflogo.php?type=13&group_id=3894403" alt="Download Wallora on SourceForge">
@@ -56,7 +48,6 @@
   <a href="https://sourceforge.net/projects/wallora-android-app/">
     <img src="https://img.shields.io/sourceforge/dt/wallora-android-app.svg" alt="Download Count">
   </a>
-
 </div>
 
 ---
@@ -81,7 +72,7 @@
 
 Found a bug or have a great idea? We'd love to hear from you!
 
-- 🐛 [Report a bug](https://github.com/HexaGhost-09/wallora-2/issues/new?labels=bug&template=bug_report.md)
+- 🐛 [Report a bug](https://github.com/HexaGhost-09/wallora-2/issues/new?labels=bug&template=bug_report.md)  
 - ✨ [Request a feature](https://github.com/HexaGhost-09/wallora-2/issues/new?labels=enhancement&template=feature_request.md)
 
 ---
@@ -105,7 +96,6 @@ Join our growing community of wallpaper lovers!
 ---
 
 <div align="center">
-  <strong>Made with ❤️ by <a href="https://github.com/HexaGhost-09">HexaGhost-09</a></strong>
-  <br><br>
+  <strong>Made with ❤️ by <a href="https://github.com/HexaGhost-09">HexaGhost-09</a></strong><br><br>
   If you found this project helpful, please consider giving it a ⭐ on GitHub!
 </div>
