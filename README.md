@@ -10,7 +10,8 @@
   <img src="https://img.shields.io/github/forks/HexaGhost-09/wallora-2?style=social" alt="GitHub forks">
   <img src="https://img.shields.io/github/watchers/HexaGhost-09/wallora-2?style=social" alt="GitHub watchers">
 
-  <img src="https://img.shields.io/github/license/HexaGhost-09/wallora-2" alt="License">
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+  
   <img src="https://img.shields.io/github/last-commit/HexaGhost-09/wallora-2" alt="Last commit">
   <img src="https://img.shields.io/github/issues/HexaGhost-09/wallora-2" alt="Issues">
   <img src="https://img.shields.io/github/issues-pr/HexaGhost-09/wallora-2" alt="Pull requests">
