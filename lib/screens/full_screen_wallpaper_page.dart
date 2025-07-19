@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:wallora/data/models/wallpaper_model.dart';
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 
 enum WallpaperType { homeScreen, lockScreen, both }
