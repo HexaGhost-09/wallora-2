@@ -1,25 +1,25 @@
 class Wallpaper {
   final String id;
-  final String title;
-  final String url;
   final String category;
-  final String? thumbnail;
+  final String url;
+  final String thumbnail;
+  final String timestamp;
 
   Wallpaper({
     required this.id,
-    required this.title,
-    required this.url,
     required this.category,
-    this.thumbnail,
+    required this.url,
+    required this.thumbnail,
+    required this.timestamp,
   });
 
   factory Wallpaper.fromJson(Map<String, dynamic> json) {
     return Wallpaper(
-      id: json['id'] ?? json['url'],
-      title: json['title'] ?? 'Untitled',
+      id: json['id'],
+      category: json['category'],
       url: json['url'],
-      category: json['category'] ?? 'unknown',
       thumbnail: json['thumbnail'],
+      timestamp: json['timestamp'],
     );
   }
 }
