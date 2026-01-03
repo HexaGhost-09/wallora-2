@@ -1,15 +1,17 @@
 class Wallpaper {
   final String id;
   final String category;
-  final String url;
-  final String thumbnail;
+  final String title;
+  final String image;
+  final String download;
   final String timestamp;
 
   Wallpaper({
     required this.id,
     required this.category,
-    required this.url,
-    required this.thumbnail,
+    required this.title,
+    required this.image,
+    required this.download,
     required this.timestamp,
   });
 
@@ -17,8 +19,9 @@ class Wallpaper {
     return Wallpaper(
       id: json['id'],
       category: json['category'],
-      url: json['url'],
-      thumbnail: json['thumbnail'],
+      title: json['title'],
+      image: json['image'],
+      download: json['download'],
       timestamp: json['timestamp'],
     );
   }

@@ -15,7 +15,7 @@ class _WallpaperTrayState extends State<WallpaperTray> {
   @override
   void initState() {
     super.initState();
-    wallpapers = WalloraAPI.getWallpapers(); // ✅ FIXED
+    wallpapers = WalloraAPI.getWallpapers();
   }
 
   @override
@@ -56,7 +56,10 @@ class _WallpaperTrayState extends State<WallpaperTray> {
               final w = data[index];
               return ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.network(w.thumbnail, fit: BoxFit.cover),
+                child: Image.network(
+                  w.image, // ✅ FIXED (matches API)
+                  fit: BoxFit.cover,
+                ),
               );
             },
           ),
