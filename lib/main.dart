@@ -29,10 +29,10 @@ class WalloraApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
+          seedColor: const Color.fromARGB(255, 246, 246, 247),
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
