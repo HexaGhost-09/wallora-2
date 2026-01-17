@@ -5,16 +5,17 @@ import 'screens/home_page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Make status bars completely transparent
+  // 1. Force Edge-to-Edge
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  // 2. Set transparent overlay
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark, // For light mode initially
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarDividerColor: Colors.transparent,
     ),
   );
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   runApp(const WalloraApp());
 }
@@ -28,46 +29,44 @@ class WalloraApp extends StatelessWidget {
       title: 'Wallora',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
-      // --- STRICT WHITE LIGHT THEME ---
+      
+      // --- LIGHT THEME (Pure White) ---
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white, // Pure White Background
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: const ColorScheme.light(
-          primary: Colors.black, // Primary actions are black
+          primary: Colors.black,
           onPrimary: Colors.white,
-          secondary: Colors.black,
-          onSecondary: Colors.white,
           background: Colors.white,
-          onBackground: Colors.black, // Text is black
+          onBackground: Colors.black,
           surface: Colors.white,
           onSurface: Colors.black,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: Colors.transparent,
           elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black),
         ),
       ),
-      // --- STRICT BLACK DARK THEME ---
+
+      // --- DARK THEME (Pure Black) ---
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black, // Pure Black Background
+        scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(
-          primary: Colors.white, // Primary actions are white
+          primary: Colors.white,
           onPrimary: Colors.black,
-          secondary: Colors.white,
-          onSecondary: Colors.black,
           background: Colors.black,
-          onBackground: Colors.white, // Text is white
+          onBackground: Colors.white,
           surface: Colors.black,
           onSurface: Colors.white,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
           elevation: 0,
+          iconTheme: IconThemeData(color: Colors.white),
         ),
       ),
       home: const HomePage(),

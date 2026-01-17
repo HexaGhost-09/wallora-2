@@ -11,43 +11,40 @@ class WallpaperTray extends StatefulWidget {
 }
 
 class _WallpaperTrayState extends State<WallpaperTray> {
-  late Future<List<Wallpaper>> _wallpapersFuture;
+  late Future<List<Wallpaper>> _wallpapers;
 
   @override
   void initState() {
     super.initState();
-    _wallpapersFuture = WalloraAPI.getWallpapers();
+    _wallpapers = WalloraAPI.getWallpapers();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Wallpaper>>(
-      future: _wallpapersFuture,
+      future: _wallpapers,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No wallpapers found'));
         }
-
-        final wallpapers = snapshot.data!;
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No Wallpapers"));
+        }
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: wallpapers.length,
+            itemCount: snapshot.data!.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
+              childAspectRatio: 0.55,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 0.55,
             ),
             itemBuilder: (context, index) {
-              return WallpaperCard(wallpaper: wallpapers[index]);
+              return WallpaperCard(wallpaper: snapshot.data![index]);
             },
           ),
         );

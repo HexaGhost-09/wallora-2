@@ -11,11 +11,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-
-  // List of screens for the bottom nav
-  final List<Widget> _screens = const [
-    HomeTab(),
-    Center(child: Text("Categories Coming Soon", style: TextStyle(color: Colors.white))),
+  
+  final List<Widget> _screens = [
+    const HomeTab(),
+    const Center(child: Text("Categories")),
   ];
 
   @override
@@ -25,7 +24,7 @@ class _HomePageState extends State<HomePage> {
       body: _screens[_selectedIndex],
       bottomNavigationBar: FloatingNavBar(
         selectedIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (i) => setState(() => _selectedIndex = i),
       ),
     );
   }

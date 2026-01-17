@@ -11,13 +11,14 @@ class HomeHeader extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        // REDUCED PADDING: Changed from (20, 20, 20, 10) to (20, 10, 20, 5)
+        // REDUCED PADDING
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
+                // LOGO (Original Colors)
                 Image.asset(
                   'assets/icon/icon.png',
                   height: 30,
@@ -38,7 +39,6 @@ class HomeHeader extends StatelessWidget {
             IconButton(
               onPressed: () {},
               icon: Icon(Icons.search_rounded, size: 28, color: textColor),
-              // Removed extra padding around the icon button itself to tighten it
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),

@@ -10,14 +10,14 @@ class HomeTab extends StatelessWidget {
     return Column(
       children: const [
         HomeHeader(),
-        // REMOVED: SizedBox(height: 10) - This removes the gap between Header and Grid
+        // FIX: Expanded takes all remaining space, preventing overflow
         Expanded(
           child: SingleChildScrollView(
             child: Column(
               children: [
                 WallpaperTray(),
-                // REDUCED: Changed from 100 to 80 (Just enough to clear the floating bar)
-                SizedBox(height: 80), 
+                // Space for floating nav bar
+                SizedBox(height: 100), 
               ],
             ),
           ),
