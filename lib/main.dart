@@ -5,14 +5,15 @@ import 'screens/home_page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Make status bars completely transparent
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark, // For light mode initially
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarDividerColor: Colors.transparent,
     ),
   );
-
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   runApp(const WalloraApp());
@@ -26,23 +27,49 @@ class WalloraApp extends StatelessWidget {
     return MaterialApp(
       title: 'Wallora',
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      // --- STRICT WHITE LIGHT THEME ---
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 246, 246, 247),
-          brightness: Brightness.light,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white, // Pure White Background
+        colorScheme: const ColorScheme.light(
+          primary: Colors.black, // Primary actions are black
+          onPrimary: Colors.white,
+          secondary: Colors.black,
+          onSecondary: Colors.white,
+          background: Colors.white,
+          onBackground: Colors.black, // Text is black
+          surface: Colors.white,
+          onSurface: Colors.black,
         ),
-        scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
       ),
+      // --- STRICT BLACK DARK THEME ---
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-          brightness: Brightness.dark,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black, // Pure Black Background
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.white, // Primary actions are white
+          onPrimary: Colors.black,
+          secondary: Colors.white,
+          onSecondary: Colors.black,
+          background: Colors.black,
+          onBackground: Colors.white, // Text is white
+          surface: Colors.black,
+          onSurface: Colors.white,
         ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
-      themeMode: ThemeMode.system,
       home: const HomePage(),
     );
   }

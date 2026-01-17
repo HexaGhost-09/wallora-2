@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/floating_nav_bar.dart';
-import '../widgets/home_header.dart';
-import '../widgets/wallpaper_tray.dart';
+import 'home_tab.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,30 +10,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedNavIndex = 0;
+  int _selectedIndex = 0;
+
+  // List of screens for the bottom nav
+  final List<Widget> _screens = const [
+    HomeTab(),
+    Center(child: Text("Categories Coming Soon", style: TextStyle(color: Colors.white))),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-
-      body: Column(
-        children: const [
-          HomeHeader(), // 🔝 Header
-          SizedBox(height: 12),
-          Expanded(
-            child: SingleChildScrollView(
-              child: WallpaperTray(), // 🧱 Wallpaper tray
-            ),
-          ),
-        ],
-      ),
-
+      body: _screens[_selectedIndex],
       bottomNavigationBar: FloatingNavBar(
-        selectedIndex: _selectedNavIndex,
-        onTap: (index) {
-          setState(() => _selectedNavIndex = index);
-        },
+        selectedIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
       ),
     );
   }

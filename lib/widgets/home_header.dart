@@ -6,37 +6,41 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onBackground;
 
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        // REDUCED PADDING: Changed from (20, 20, 20, 10) to (20, 10, 20, 5)
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            /// LOGO + TEXT
             Row(
               children: [
                 Image.asset(
                   'assets/icon/icon.png',
-                  height: 28, // ✅ perfect for title text
-                  width: 28,
+                  height: 30,
+                  width: 30,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Text(
                   'Wallora',
                   style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
+                    color: textColor,
+                    fontSize: 22,
                   ),
                 ),
               ],
             ),
-
-            /// RIGHT ICON
             IconButton(
               onPressed: () {},
-              icon: const Icon(Icons.search_rounded),
+              icon: Icon(Icons.search_rounded, size: 28, color: textColor),
+              // Removed extra padding around the icon button itself to tighten it
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
             ),
           ],
         ),
