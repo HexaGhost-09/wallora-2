@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:async_wallpaper/async_wallpaper.dart';
+import 'package:async_wallpaper/async_wallpaper.dart'; // The magic wallpaper tool
 import 'package:flutter/services.dart';
 import '../models/wallpaper_model.dart';
 
 class WallpaperView extends StatefulWidget {
   final Wallpaper wallpaper;
-
   const WallpaperView({super.key, required this.wallpaper});
 
   @override
@@ -16,18 +15,20 @@ class WallpaperView extends StatefulWidget {
 class _WallpaperViewState extends State<WallpaperView> {
   bool _isApplying = false;
 
+  // This function does the hard work of setting the wallpaper
   Future<void> _setWallpaper(int location) async {
     setState(() => _isApplying = true);
-    Navigator.pop(context); // Close bottom sheet
+    Navigator.pop(context); // Close the little menu
 
     try {
+      // This line tells the phone to change the background
       String result = (await AsyncWallpaper.setWallpaper(
         url: widget.wallpaper.image,
         wallpaperLocation: location,
         goToHome: false,
         toastDetails: ToastDetails.success(),
         errorToastDetails: ToastDetails.error(),
-      )).toString() ?? 'Failed';
+      )).toString();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,12 +36,13 @@ class _WallpaperViewState extends State<WallpaperView> {
       );
     } on PlatformException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error setting wallpaper')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error!')));
     } finally {
       if (mounted) setState(() => _isApplying = false);
     }
   }
 
+  // This shows the menu to choose "Home Screen" or "Lock Screen"
   void _showApplyOptions() {
     showModalBottomSheet(
       context: context,
@@ -88,12 +90,14 @@ class _WallpaperViewState extends State<WallpaperView> {
       ),
       body: Stack(
         children: [
+          // This shows the big full-screen picture
           SizedBox.expand(
             child: CachedNetworkImage(
               imageUrl: widget.wallpaper.image,
               fit: BoxFit.cover,
             ),
           ),
+          // Show a spinning circle while it's working
           if (_isApplying)
             Container(
               color: Colors.black54,
@@ -101,6 +105,7 @@ class _WallpaperViewState extends State<WallpaperView> {
             ),
         ],
       ),
+      // The big "Apply" button at the bottom
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -110,7 +115,7 @@ class _WallpaperViewState extends State<WallpaperView> {
           child: ElevatedButton(
             onPressed: _showApplyOptions,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black.withOpacity(0.7),
+              backgroundColor: const Color(0xB3000000),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/wallpaper_model.dart';
-import '../screens/wallpaper_view.dart'; // We will create this next
+import '../screens/wallpaper_view.dart'; // This tells it where the big screen is
 
 class WallpaperCard extends StatelessWidget {
   final Wallpaper wallpaper;
@@ -11,6 +11,7 @@ class WallpaperCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      // 1. This part makes the card "clickable"
       onTap: () {
         Navigator.push(
           context,

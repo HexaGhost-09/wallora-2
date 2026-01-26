@@ -23,7 +23,7 @@ class FloatingNavBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(32), // High border radius for pill shape
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: const Color(0x4D000000),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
                 spreadRadius: 2,
