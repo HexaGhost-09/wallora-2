@@ -44,10 +44,11 @@ class FloatingNavBar extends StatelessWidget {
                 onTap: () => onTap(1),
               ),
               _NavBarItem(
-                icon: Icons.person_rounded,
+                icon: Icons.settings_rounded,
                 isSelected: selectedIndex == 2,
                 onTap: () => onTap(2),
               ),
+
             ],
           ),
         ),

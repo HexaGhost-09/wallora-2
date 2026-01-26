@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/home_page.dart';
+import 'services/update_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,8 +21,22 @@ void main() {
   runApp(const WalloraApp());
 }
 
-class WalloraApp extends StatelessWidget {
+
+
+class WalloraApp extends StatefulWidget {
   const WalloraApp({super.key});
+
+  @override
+  State<WalloraApp> createState() => _WalloraAppState();
+}
+
+class _WalloraAppState extends State<WalloraApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Silent check for updates on startup
+    UpdateService.instance.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
