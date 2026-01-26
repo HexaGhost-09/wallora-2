@@ -1,9 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class FloatingNavBar extends StatelessWidget {
   final int selectedIndex;
-  final Function(int) onTap;
+  final ValueChanged<int> onTap;
 
   const FloatingNavBar({
     super.key,
@@ -13,51 +12,43 @@ class FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    // Define high-contrast colors based on our new strict theme
-    final backgroundColor = isDark ? Colors.grey[900]!.withOpacity(0.8) : Colors.white.withOpacity(0.9);
-    final borderColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
-
-    return Container(
-      // Adjusted margin to prevent "yellow marks" at bottom edge
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(35),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            height: 70, // Slightly taller for better touch targets
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(35),
-              border: Border.all(color: borderColor, width: 1.5),
-               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _NavItem(
-                  icon: selectedIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
-                  label: 'Home',
-                  selected: selectedIndex == 0,
-                  onTap: () => onTap(0),
-                ),
-                _NavItem(
-                  icon: selectedIndex == 1 ? Icons.category_rounded : Icons.category_outlined,
-                  label: 'Categories',
-                  selected: selectedIndex == 1,
-                  onTap: () => onTap(1),
-                ),
-              ],
-            ),
+    // Using SafeArea to ensure it doesn't overlap with the home indicator on newer iPhones
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Container(
+          height: 65, // Compact height for a sleek look
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E), // Dark background (adjust to match your theme)
+            borderRadius: BorderRadius.circular(32), // High border radius for pill shape
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _NavBarItem(
+                icon: Icons.home_rounded,
+                isSelected: selectedIndex == 0,
+                onTap: () => onTap(0),
+              ),
+              _NavBarItem(
+                icon: Icons.grid_view_rounded,
+                isSelected: selectedIndex == 1,
+                onTap: () => onTap(1),
+              ),
+              _NavBarItem(
+                icon: Icons.person_rounded,
+                isSelected: selectedIndex == 2,
+                onTap: () => onTap(2),
+              ),
+            ],
           ),
         ),
       ),
@@ -65,49 +56,34 @@ class FloatingNavBar extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavBarItem extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final bool selected;
+  final bool isSelected;
   final VoidCallback onTap;
 
-  const _NavItem({
+  const _NavBarItem({
     required this.icon,
-    required this.label,
-    required this.selected,
+    required this.isSelected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Use the primary color (Black in light mode, White in dark mode)
-    final activeColor = theme.colorScheme.primary;
-    final inactiveColor = theme.colorScheme.onBackground.withOpacity(0.5);
-    final color = selected ? activeColor : inactiveColor;
-
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 26, color: color),
-            const SizedBox(height: 4),
-             // Only show text if selected for a cleaner look (optional style choice)
-             if (selected)
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-          ],
+      behavior: HitTestBehavior.opaque, // Ensures the entire area is clickable
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? Colors.black : Colors.grey.shade600,
+          size: 26,
         ),
       ),
     );

@@ -38,8 +38,6 @@ class WalloraApp extends StatelessWidget {
         colorScheme: const ColorScheme.light(
           primary: Colors.black,
           onPrimary: Colors.white,
-          background: Colors.white,
-          onBackground: Colors.black,
           surface: Colors.white,
           onSurface: Colors.black,
         ),
@@ -58,8 +56,6 @@ class WalloraApp extends StatelessWidget {
         colorScheme: const ColorScheme.dark(
           primary: Colors.white,
           onPrimary: Colors.black,
-          background: Colors.black,
-          onBackground: Colors.white,
           surface: Colors.black,
           onSurface: Colors.white,
         ),

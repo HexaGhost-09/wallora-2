@@ -6,7 +6,7 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textColor = theme.colorScheme.onBackground;
+    final textColor = theme.colorScheme.onSurface;
 
     return SafeArea(
       bottom: false,

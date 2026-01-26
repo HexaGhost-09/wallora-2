@@ -27,7 +27,7 @@ class _WallpaperViewState extends State<WallpaperView> {
         goToHome: false,
         toastDetails: ToastDetails.success(),
         errorToastDetails: ToastDetails.error(),
-      ))?.toString() ?? 'Failed';
+      )).toString() ?? 'Failed';
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
