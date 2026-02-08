@@ -1,6 +1,3 @@
-Here is your **fully copyable README.md code** 👇
-
-```md
 # 🚀 Wallora  
 
 <p align="center">
@@ -25,6 +22,7 @@ Here is your **fully copyable README.md code** 👇
 - 🔥 Scalable project structure
 
 ---
+
 
 ## 📂 Project Structure
 
