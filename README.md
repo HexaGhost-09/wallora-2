@@ -8,6 +8,10 @@
   <img src="https://img.shields.io/github/license/your-username/wallora" />
 </p>
 
+## 🎮 Play on itch.io
+
+[![Wallora](https://itch.io/embed/3725112.png)](https://hexaghost-09.itch.io/wallora)
+
 <p align="center">
   A modern Flutter application built with clean UI and scalable architecture.
 </p>
