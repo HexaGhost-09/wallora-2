@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:async_wallpaper/async_wallpaper.dart'; // The magic wallpaper tool
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/wallpaper_model.dart';
 
 class WallpaperView extends StatefulWidget {
@@ -29,6 +31,28 @@ class _WallpaperViewState extends State<WallpaperView> {
         toastDetails: ToastDetails.success(),
         errorToastDetails: ToastDetails.error(),
       )).toString();
+
+      if (result == 'Wallpaper set') {
+        // Save to cache as requested
+        final prefs = await SharedPreferences.getInstance();
+        List<String> savedWallpapers = prefs.getStringList('applied_wallpapers') ?? [];
+        
+        // Convert current wallpaper to Map then JSON string
+        Map<String, dynamic> wallpaperMap = {
+          'id': widget.wallpaper.id,
+          'category': widget.wallpaper.category,
+          'title': widget.wallpaper.title,
+          'image': widget.wallpaper.image,
+          'download': widget.wallpaper.download,
+          'timestamp': widget.wallpaper.timestamp,
+        };
+        
+        String jsonStr = json.encode(wallpaperMap);
+        if (!savedWallpapers.contains(jsonStr)) {
+          savedWallpapers.add(jsonStr);
+          await prefs.setStringList('applied_wallpapers', savedWallpapers);
+        }
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
