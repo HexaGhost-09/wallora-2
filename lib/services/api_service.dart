@@ -18,6 +18,17 @@ class WalloraAPI {
     }
   }
 
+  static Future<List<Wallpaper>> getWallpapersByCategory(String categoryId) async {
+    final response = await http.get(Uri.parse('$baseUrl/wallpapers/$categoryId'));
+
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return data.map((e) => Wallpaper.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load wallpapers for category $categoryId');
+    }
+  }
+
   static Future<List<Category>> getCategories() async {
     final response = await http.get(Uri.parse('$baseUrl/categories'));
 

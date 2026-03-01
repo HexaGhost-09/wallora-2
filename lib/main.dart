@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/home_page.dart';
 import 'services/update_service.dart';
+import 'services/theme_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize ThemeService
+  await ThemeService.instance.init();
 
   // 1. Force Edge-to-Edge
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -40,12 +44,15 @@ class _WalloraAppState extends State<WalloraApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Wallora',
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-      
-      // --- LIGHT THEME (Pure White) ---
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Wallora',
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeService.instance.themeMode,
+          
+          // --- LIGHT THEME (Pure White) ---
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -81,6 +88,8 @@ class _WalloraAppState extends State<WalloraApp> {
         ),
       ),
       home: const HomePage(),
+        );
+      },
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/update_service.dart';
+import '../services/theme_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -80,6 +81,70 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 32),
               
+              // Theme Settings Card
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.palette_outlined, color: Colors.purple, size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        "Theme",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<ThemeMode>(
+                      value: ThemeService.instance.themeMode,
+                      underline: const SizedBox(),
+                      icon: const Icon(Icons.arrow_drop_down_rounded),
+                      onChanged: (ThemeMode? newMode) {
+                        if (newMode != null) {
+                          ThemeService.instance.setThemeMode(newMode);
+                          setState(() {}); // Update the dropdown selection
+                        }
+                      },
+                      items: const [
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text("Light"),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text("Dark"),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text("System Default"),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // App Version Card
               Container(
                 padding: const EdgeInsets.all(20),

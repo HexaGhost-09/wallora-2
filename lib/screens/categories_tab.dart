@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
+import 'category_wallpapers_screen.dart';
 
 class CategoriesTab extends StatefulWidget {
   const CategoriesTab({super.key});
@@ -62,7 +63,16 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryWallpapersScreen(category: category),
+          ),
+        );
+      },
+      child: Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -132,6 +142,6 @@ class _CategoryCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
