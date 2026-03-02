@@ -1,0 +1,320 @@
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources
+> Task :gradle:classes
+> Task :gradle:jar
+
+> Configure project :app
+Warning: Flutter support for your project's Android Gradle Plugin version (Android Gradle Plugin version 8.2.1) will soon be dropped. Please upgrade your Android Gradle Plugin version to a version of at least Android Gradle Plugin version 8.6.0 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's AGP version is typically defined in the plugins block of the `settings.gradle` file (C:\Users\MSI\Codes\wallora-2\android/settings.gradle), by a plugin with the id of com.android.application. 
+If you don't see a plugins block, your project was likely created with an older template version. In this case it is most likely defined in the top-level build.gradle file (C:\Users\MSI\Codes\wallora-2\android/build.gradle) by the following line in the dependencies block of the buildscript: "classpath 'com.android.tools.build:gradle:<version>'".
+
+Warning: Flutter support for your project's Kotlin version (1.9.22) will soon be dropped. Please upgrade your Kotlin version to a version of at least 2.1.0 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's KGP version is typically defined in the plugins block of the `settings.gradle` file (C:\Users\MSI\Codes\wallora-2\android/settings.gradle), by a plugin with the id of org.jetbrains.kotlin.android. 
+If you don't see a plugins block, your project was likely created with an older template version, in which case it is most likely defined in the top-level build.gradle file (C:\Users\MSI\Codes\wallora-2\android/build.gradle) by the ext.kotlin_version property.
+
+WARNING: We recommend using a newer Android Gradle plugin to use compileSdk = 36
+
+This Android Gradle plugin (8.2.1) was tested up to compileSdk = 34.
+
+You are strongly encouraged to update your project to use a newer
+Android Gradle plugin that has been tested with compileSdk = 36.
+
+If you are already using the latest version of the Android Gradle plugin,
+you may need to wait until a newer version with support for compileSdk = 36 is available.
+
+To suppress this warning, add/update
+    android.suppressUnsupportedCompileSdk=36
+to this project's gradle.properties.
+
+> Task :app:ReleaseMinSdkCheck
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:compileFlutterBuildRelease
+> Task :app:packJniLibsflutterBuildRelease
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :async_wallpaper:preBuild UP-TO-DATE
+> Task :async_wallpaper:preReleaseBuild UP-TO-DATE
+> Task :async_wallpaper:writeReleaseAarMetadata UP-TO-DATE
+> Task :flutter_local_notifications:preBuild UP-TO-DATE
+> Task :flutter_local_notifications:preReleaseBuild UP-TO-DATE
+> Task :flutter_local_notifications:writeReleaseAarMetadata UP-TO-DATE
+> Task :fluttertoast:preBuild UP-TO-DATE
+> Task :fluttertoast:preReleaseBuild UP-TO-DATE
+> Task :fluttertoast:writeReleaseAarMetadata UP-TO-DATE
+> Task :package_info_plus:preBuild UP-TO-DATE
+> Task :package_info_plus:preReleaseBuild UP-TO-DATE
+> Task :package_info_plus:writeReleaseAarMetadata UP-TO-DATE
+> Task :path_provider_android:preBuild UP-TO-DATE
+> Task :path_provider_android:preReleaseBuild UP-TO-DATE
+> Task :path_provider_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :shared_preferences_android:preBuild UP-TO-DATE
+> Task :shared_preferences_android:preReleaseBuild UP-TO-DATE
+> Task :shared_preferences_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :sqflite_android:preBuild UP-TO-DATE
+> Task :sqflite_android:preReleaseBuild UP-TO-DATE
+> Task :sqflite_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :url_launcher_android:preBuild UP-TO-DATE
+> Task :url_launcher_android:preReleaseBuild UP-TO-DATE
+> Task :url_launcher_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :workmanager:preBuild UP-TO-DATE
+> Task :workmanager:preReleaseBuild UP-TO-DATE
+> Task :workmanager:writeReleaseAarMetadata UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:cleanMergeReleaseAssets
+> Task :app:mergeReleaseShaders UP-TO-DATE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :async_wallpaper:mergeReleaseShaders UP-TO-DATE
+> Task :async_wallpaper:compileReleaseShaders NO-SOURCE
+> Task :async_wallpaper:generateReleaseAssets UP-TO-DATE
+> Task :async_wallpaper:packageReleaseAssets UP-TO-DATE
+> Task :flutter_local_notifications:mergeReleaseShaders UP-TO-DATE
+> Task :flutter_local_notifications:compileReleaseShaders NO-SOURCE
+> Task :flutter_local_notifications:generateReleaseAssets UP-TO-DATE
+> Task :flutter_local_notifications:packageReleaseAssets UP-TO-DATE
+> Task :fluttertoast:mergeReleaseShaders UP-TO-DATE
+> Task :fluttertoast:compileReleaseShaders NO-SOURCE
+> Task :fluttertoast:generateReleaseAssets UP-TO-DATE
+> Task :fluttertoast:packageReleaseAssets UP-TO-DATE
+> Task :package_info_plus:mergeReleaseShaders UP-TO-DATE
+> Task :package_info_plus:compileReleaseShaders NO-SOURCE
+> Task :package_info_plus:generateReleaseAssets UP-TO-DATE
+> Task :package_info_plus:packageReleaseAssets UP-TO-DATE
+> Task :path_provider_android:mergeReleaseShaders UP-TO-DATE
+> Task :path_provider_android:compileReleaseShaders NO-SOURCE
+> Task :path_provider_android:generateReleaseAssets UP-TO-DATE
+> Task :path_provider_android:packageReleaseAssets UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseShaders UP-TO-DATE
+> Task :shared_preferences_android:compileReleaseShaders NO-SOURCE
+> Task :shared_preferences_android:generateReleaseAssets UP-TO-DATE
+> Task :shared_preferences_android:packageReleaseAssets UP-TO-DATE
+> Task :sqflite_android:mergeReleaseShaders UP-TO-DATE
+> Task :sqflite_android:compileReleaseShaders NO-SOURCE
+> Task :sqflite_android:generateReleaseAssets UP-TO-DATE
+> Task :sqflite_android:packageReleaseAssets UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseShaders UP-TO-DATE
+> Task :url_launcher_android:compileReleaseShaders NO-SOURCE
+> Task :url_launcher_android:generateReleaseAssets UP-TO-DATE
+> Task :url_launcher_android:packageReleaseAssets UP-TO-DATE
+> Task :workmanager:mergeReleaseShaders UP-TO-DATE
+> Task :workmanager:compileReleaseShaders NO-SOURCE
+> Task :workmanager:generateReleaseAssets UP-TO-DATE
+> Task :workmanager:packageReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:copyFlutterAssetsRelease
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :async_wallpaper:generateReleaseResValues UP-TO-DATE
+> Task :async_wallpaper:generateReleaseResources UP-TO-DATE
+> Task :async_wallpaper:packageReleaseResources UP-TO-DATE
+> Task :flutter_local_notifications:generateReleaseResValues UP-TO-DATE
+> Task :flutter_local_notifications:generateReleaseResources UP-TO-DATE
+> Task :flutter_local_notifications:packageReleaseResources UP-TO-DATE
+> Task :fluttertoast:generateReleaseResValues UP-TO-DATE
+> Task :fluttertoast:generateReleaseResources UP-TO-DATE
+> Task :fluttertoast:packageReleaseResources UP-TO-DATE
+> Task :package_info_plus:generateReleaseResValues UP-TO-DATE
+> Task :package_info_plus:generateReleaseResources UP-TO-DATE
+> Task :package_info_plus:packageReleaseResources UP-TO-DATE
+> Task :path_provider_android:generateReleaseResValues UP-TO-DATE
+> Task :path_provider_android:generateReleaseResources UP-TO-DATE
+> Task :path_provider_android:packageReleaseResources UP-TO-DATE
+> Task :shared_preferences_android:generateReleaseResValues UP-TO-DATE
+> Task :shared_preferences_android:generateReleaseResources UP-TO-DATE
+> Task :shared_preferences_android:packageReleaseResources UP-TO-DATE
+> Task :sqflite_android:generateReleaseResValues UP-TO-DATE
+> Task :sqflite_android:generateReleaseResources UP-TO-DATE
+> Task :sqflite_android:packageReleaseResources UP-TO-DATE
+> Task :url_launcher_android:generateReleaseResValues UP-TO-DATE
+> Task :url_launcher_android:generateReleaseResources UP-TO-DATE
+> Task :url_launcher_android:packageReleaseResources UP-TO-DATE
+> Task :workmanager:generateReleaseResValues UP-TO-DATE
+> Task :workmanager:generateReleaseResources UP-TO-DATE
+> Task :workmanager:packageReleaseResources UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :async_wallpaper:extractDeepLinksRelease UP-TO-DATE
+> Task :async_wallpaper:processReleaseManifest UP-TO-DATE
+> Task :flutter_local_notifications:extractDeepLinksRelease UP-TO-DATE
+> Task :flutter_local_notifications:processReleaseManifest UP-TO-DATE
+> Task :fluttertoast:extractDeepLinksRelease UP-TO-DATE
+> Task :fluttertoast:processReleaseManifest UP-TO-DATE
+> Task :package_info_plus:extractDeepLinksRelease UP-TO-DATE
+> Task :package_info_plus:processReleaseManifest UP-TO-DATE
+> Task :path_provider_android:extractDeepLinksRelease UP-TO-DATE
+> Task :path_provider_android:processReleaseManifest UP-TO-DATE
+> Task :shared_preferences_android:extractDeepLinksRelease UP-TO-DATE
+> Task :shared_preferences_android:processReleaseManifest UP-TO-DATE
+> Task :sqflite_android:extractDeepLinksRelease UP-TO-DATE
+> Task :sqflite_android:processReleaseManifest UP-TO-DATE
+> Task :url_launcher_android:extractDeepLinksRelease UP-TO-DATE
+> Task :url_launcher_android:processReleaseManifest UP-TO-DATE
+> Task :workmanager:extractDeepLinksRelease UP-TO-DATE
+> Task :workmanager:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:outputReleaseAppLinkSettings UP-TO-DATE
+> Task :app:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseManifestForPackage UP-TO-DATE
+> Task :async_wallpaper:parseReleaseLocalResources UP-TO-DATE
+> Task :async_wallpaper:generateReleaseRFile UP-TO-DATE
+> Task :flutter_local_notifications:parseReleaseLocalResources UP-TO-DATE
+> Task :flutter_local_notifications:generateReleaseRFile UP-TO-DATE
+> Task :fluttertoast:parseReleaseLocalResources UP-TO-DATE
+> Task :fluttertoast:generateReleaseRFile UP-TO-DATE
+> Task :package_info_plus:parseReleaseLocalResources UP-TO-DATE
+> Task :package_info_plus:generateReleaseRFile UP-TO-DATE
+> Task :path_provider_android:parseReleaseLocalResources UP-TO-DATE
+> Task :path_provider_android:generateReleaseRFile UP-TO-DATE
+> Task :shared_preferences_android:parseReleaseLocalResources UP-TO-DATE
+> Task :shared_preferences_android:generateReleaseRFile UP-TO-DATE
+> Task :sqflite_android:parseReleaseLocalResources UP-TO-DATE
+> Task :sqflite_android:generateReleaseRFile UP-TO-DATE
+> Task :url_launcher_android:parseReleaseLocalResources UP-TO-DATE
+> Task :url_launcher_android:generateReleaseRFile UP-TO-DATE
+> Task :workmanager:parseReleaseLocalResources UP-TO-DATE
+> Task :workmanager:generateReleaseRFile UP-TO-DATE
+> Task :app:processReleaseResources UP-TO-DATE
+> Task :async_wallpaper:javaPreCompileRelease UP-TO-DATE
+> Task :fluttertoast:checkKotlinGradlePluginConfigurationErrors
+> Task :fluttertoast:compileReleaseKotlin UP-TO-DATE
+> Task :fluttertoast:javaPreCompileRelease UP-TO-DATE
+> Task :fluttertoast:compileReleaseJavaWithJavac NO-SOURCE
+> Task :fluttertoast:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :async_wallpaper:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :async_wallpaper:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :flutter_local_notifications:javaPreCompileRelease UP-TO-DATE
+> Task :flutter_local_notifications:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :flutter_local_notifications:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :package_info_plus:checkKotlinGradlePluginConfigurationErrors
+> Task :package_info_plus:compileReleaseKotlin UP-TO-DATE
+> Task :package_info_plus:javaPreCompileRelease UP-TO-DATE
+> Task :package_info_plus:compileReleaseJavaWithJavac NO-SOURCE
+> Task :package_info_plus:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :path_provider_android:javaPreCompileRelease UP-TO-DATE
+> Task :path_provider_android:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :path_provider_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :shared_preferences_android:checkKotlinGradlePluginConfigurationErrors
+> Task :shared_preferences_android:compileReleaseKotlin UP-TO-DATE
+> Task :shared_preferences_android:javaPreCompileRelease UP-TO-DATE
+> Task :shared_preferences_android:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :shared_preferences_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :sqflite_android:javaPreCompileRelease UP-TO-DATE
+> Task :sqflite_android:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :sqflite_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :url_launcher_android:generateReleaseBuildConfig UP-TO-DATE
+> Task :url_launcher_android:javaPreCompileRelease UP-TO-DATE
+> Task :url_launcher_android:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :url_launcher_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :workmanager:checkKotlinGradlePluginConfigurationErrors
+> Task :workmanager:javaPreCompileRelease UP-TO-DATE
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :async_wallpaper:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :async_wallpaper:processReleaseJavaRes NO-SOURCE
+> Task :async_wallpaper:createFullJarRelease UP-TO-DATE
+> Task :async_wallpaper:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :async_wallpaper:mergeReleaseNativeLibs NO-SOURCE
+> Task :async_wallpaper:stripReleaseDebugSymbols NO-SOURCE
+> Task :async_wallpaper:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :async_wallpaper:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :async_wallpaper:extractReleaseAnnotations UP-TO-DATE
+> Task :async_wallpaper:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :async_wallpaper:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :async_wallpaper:prepareLintJarForPublish UP-TO-DATE
+> Task :async_wallpaper:prepareReleaseArtProfile UP-TO-DATE
+> Task :async_wallpaper:mergeReleaseJavaResource UP-TO-DATE
+> Task :async_wallpaper:syncReleaseLibJars UP-TO-DATE
+> Task :async_wallpaper:bundleReleaseLocalLintAar
+> Task :fluttertoast:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :fluttertoast:mergeReleaseNativeLibs NO-SOURCE
+> Task :fluttertoast:stripReleaseDebugSymbols NO-SOURCE
+> Task :fluttertoast:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :fluttertoast:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :fluttertoast:extractReleaseAnnotations UP-TO-DATE
+> Task :fluttertoast:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :fluttertoast:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :fluttertoast:prepareLintJarForPublish UP-TO-DATE
+> Task :fluttertoast:prepareReleaseArtProfile UP-TO-DATE
+> Task :fluttertoast:processReleaseJavaRes
+> Task :fluttertoast:mergeReleaseJavaResource UP-TO-DATE
+> Task :fluttertoast:syncReleaseLibJars UP-TO-DATE
+> Task :fluttertoast:bundleReleaseLocalLintAar
+> Task :async_wallpaper:extractProguardFiles UP-TO-DATE
+> Task :async_wallpaper:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :fluttertoast:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :fluttertoast:createFullJarRelease UP-TO-DATE
+> Task :fluttertoast:extractProguardFiles UP-TO-DATE
+> Task :fluttertoast:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :fluttertoast:generateReleaseLintModel UP-TO-DATE
+> Task :async_wallpaper:generateReleaseLintModel UP-TO-DATE
+> Task :flutter_local_notifications:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :flutter_local_notifications:processReleaseJavaRes NO-SOURCE
+> Task :flutter_local_notifications:createFullJarRelease
+> Task :flutter_local_notifications:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :flutter_local_notifications:mergeReleaseNativeLibs NO-SOURCE
+> Task :flutter_local_notifications:stripReleaseDebugSymbols NO-SOURCE
+> Task :flutter_local_notifications:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :flutter_local_notifications:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :flutter_local_notifications:extractReleaseAnnotations UP-TO-DATE
+> Task :flutter_local_notifications:mergeReleaseGeneratedProguardFiles
+> Task :flutter_local_notifications:mergeReleaseConsumerProguardFiles
+> Task :flutter_local_notifications:prepareReleaseArtProfile
+> Task :flutter_local_notifications:prepareLintJarForPublish
+> Task :flutter_local_notifications:extractProguardFiles
+> Task :flutter_local_notifications:writeReleaseLintModelMetadata
+> Task :package_info_plus:processReleaseJavaRes
+> Task :package_info_plus:mergeReleaseJniLibFolders
+> Task :flutter_local_notifications:mergeReleaseJavaResource
+> Task :package_info_plus:bundleLibRuntimeToJarRelease
+> Task :flutter_local_notifications:syncReleaseLibJars
+> Task :flutter_local_notifications:bundleReleaseLocalLintAar
+> Task :package_info_plus:createFullJarRelease
+> Task :package_info_plus:mergeReleaseNativeLibs NO-SOURCE
+> Task :package_info_plus:stripReleaseDebugSymbols NO-SOURCE
+> Task :package_info_plus:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :package_info_plus:copyReleaseJniLibsProjectAndLocalJars
+> Task :package_info_plus:extractReleaseAnnotations
+
+> Task :workmanager:compileReleaseKotlin FAILED
+e: file:///C:/Users/MSI/AppData/Local/Pub/Cache/hosted/pub.dev/workmanager-0.5.2/android/src/main/kotlin/dev/fluttercommunity/workmanager/BackgroundWorker.kt:14:44 Unresolved reference: shim
+e: file:///C:/Users/MSI/AppData/Local/Pub/Cache/hosted/pub.dev/workmanager-0.5.2/android/src/main/kotlin/dev/fluttercommunity/workmanager/BackgroundWorker.kt:98:68 Unresolved reference: ShimPluginRegistry
+e: file:///C:/Users/MSI/AppData/Local/Pub/Cache/hosted/pub.dev/workmanager-0.5.2/android/src/main/kotlin/dev/fluttercommunity/workmanager/WorkmanagerPlugin.kt:35:52 Unresolved reference: PluginRegistrantCallback
+e: file:///C:/Users/MSI/AppData/Local/Pub/Cache/hosted/pub.dev/workmanager-0.5.2/android/src/main/kotlin/dev/fluttercommunity/workmanager/WorkmanagerPlugin.kt:38:52 Unresolved reference: Registrar
+e: file:///C:/Users/MSI/AppData/Local/Pub/Cache/hosted/pub.dev/workmanager-0.5.2/android/src/main/kotlin/dev/fluttercommunity/workmanager/WorkmanagerPlugin.kt:49:80 Unresolved reference: PluginRegistrantCallback
+
+> Task :flutter_local_notifications:generateReleaseLintModel
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':workmanager:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.9/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 17s
+198 actionable tasks: 35 executed, 163 up-to-date

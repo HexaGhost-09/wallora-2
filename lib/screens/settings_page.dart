@@ -53,9 +53,21 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _launchUpdateUrl() async {
-    if (_updateInfo?.url != null) {
-      final uri = Uri.parse(_updateInfo!.url);
+  Future<void> _launchGitHubUrl() async {
+    if (_updateInfo != null) {
+      final uri = Uri.parse('https://github.com/HexaGhost-09/wallora-2/releases');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    }
+  }
+
+  Future<void> _launchSourceForgeUrl() async {
+    if (_updateInfo != null) {
+      final String version = _updateInfo!.version.startsWith('v') 
+          ? _updateInfo!.version 
+          : 'v${_updateInfo!.version}';
+      final uri = Uri.parse('https://sourceforge.net/projects/wallora-android-app/files/$version/app-release.apk/download');
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
@@ -240,18 +252,34 @@ class _SettingsPageState extends State<SettingsPage> {
                              ),
                            ),
                            const SizedBox(height: 16),
-                           SizedBox(
-                             width: double.infinity,
-                             child: FilledButton.icon(
-                               onPressed: _launchUpdateUrl,
-                               icon: const Icon(Icons.download_rounded),
-                               label: const Text("Download Update"),
-                               style: FilledButton.styleFrom(
-                                 backgroundColor: Colors.black,
-                                 foregroundColor: Colors.white,
-                                 padding: const EdgeInsets.symmetric(vertical: 16),
+                           Row(
+                             children: [
+                               Expanded(
+                                 child: FilledButton.icon(
+                                   onPressed: _launchGitHubUrl,
+                                   icon: const Icon(Icons.code_rounded),
+                                   label: const Text("GitHub"),
+                                   style: FilledButton.styleFrom(
+                                     backgroundColor: Colors.black,
+                                     foregroundColor: Colors.white,
+                                     padding: const EdgeInsets.symmetric(vertical: 16),
+                                   ),
+                                 ),
                                ),
-                             ),
+                               const SizedBox(width: 8),
+                               Expanded(
+                                 child: FilledButton.icon(
+                                   onPressed: _launchSourceForgeUrl,
+                                   icon: const Icon(Icons.download_rounded),
+                                   label: const Text("SourceForge"),
+                                   style: FilledButton.styleFrom(
+                                     backgroundColor: Colors.orange.shade800,
+                                     foregroundColor: Colors.white,
+                                     padding: const EdgeInsets.symmetric(vertical: 16),
+                                   ),
+                                 ),
+                               ),
+                             ],
                            ),
                          ],
                        )

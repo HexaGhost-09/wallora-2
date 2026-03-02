@@ -3,12 +3,18 @@ import 'package:flutter/services.dart';
 import 'screens/home_page.dart';
 import 'services/update_service.dart';
 import 'services/theme_service.dart';
+import 'services/notification_service.dart';
+import 'services/background_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize ThemeService
   await ThemeService.instance.init();
+  
+  // Initialize Notifications and Background Worker
+  await NotificationService.instance.init();
+  await BackgroundService.instance.init();
 
   // 1. Force Edge-to-Edge
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

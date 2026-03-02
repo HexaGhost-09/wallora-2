@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'notification_service.dart';
 
 class UpdateInfo {
   final String version;
@@ -27,7 +28,7 @@ class UpdateService {
   bool _isChecking = false;
   
   // Cache the update info to avoid repeated API calls if not forced
-  Future<UpdateInfo?> checkForUpdates({bool force = false}) async {
+  Future<UpdateInfo?> checkForUpdates({bool force = false, bool showNotification = false}) async {
     if (_latestUpdate != null && !force) return _latestUpdate;
     if (_isChecking) return null;
 
@@ -62,6 +63,13 @@ class UpdateService {
           releaseNotes: body,
           isAvailable: isAvailable,
         );
+        
+        if (isAvailable && showNotification) {
+          final String version = isAvailable ? cleanTag : currentVersion;
+          // Build SourceForge link dynamically for notification
+          final sfUrl = 'https://sourceforge.net/projects/wallora-android-app/files/v$version/app-release.apk/download';
+          await NotificationService.instance.showUpdateNotification(cleanTag, sfUrl);
+        }
         
         return _latestUpdate;
       }
@@ -99,6 +107,6 @@ class UpdateService {
   }
 
   Future<void> initialize() async {
-    await checkForUpdates();
+    await checkForUpdates(showNotification: true);
   }
 }
