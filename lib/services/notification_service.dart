@@ -1,6 +1,18 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) async {
+  if (notificationResponse.payload != null) {
+    final uri = Uri.parse(notificationResponse.payload!);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      print('Could not launch \$uri: \$e');
+    }
+  }
+}
+
 class NotificationService {
   static final NotificationService instance = NotificationService._();
   NotificationService._();
@@ -20,11 +32,15 @@ class NotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.payload != null) {
           final uri = Uri.parse(response.payload!);
-          if (await canLaunchUrl(uri)) {
+          try {
             await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } catch (e) {
+            print('Could not launch \$uri: \$e');
           }
         }
       },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+
     );
 
     // Request permissions for Android 13+

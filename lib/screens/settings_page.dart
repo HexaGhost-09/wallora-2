@@ -56,8 +56,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _launchGitHubUrl() async {
     if (_updateInfo != null) {
       final uri = Uri.parse('https://github.com/HexaGhost-09/wallora-2/releases');
-      if (await canLaunchUrl(uri)) {
+      try {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (e) {
+        debugPrint('Could not launch GitHub URL: $e');
       }
     }
   }
@@ -68,8 +70,10 @@ class _SettingsPageState extends State<SettingsPage> {
           ? _updateInfo!.version 
           : 'v${_updateInfo!.version}';
       final uri = Uri.parse('https://sourceforge.net/projects/wallora-android-app/files/$version/app-release.apk/download');
-      if (await canLaunchUrl(uri)) {
+      try {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (e) {
+        debugPrint('Could not launch SourceForge URL: $e');
       }
     }
   }
