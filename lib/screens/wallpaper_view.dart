@@ -1,9 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:async_wallpaper/async_wallpaper.dart'; // The magic wallpaper tool
+import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:iconsax/iconsax.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/wallpaper_model.dart';
 
 class WallpaperView extends StatefulWidget {
@@ -17,13 +20,11 @@ class WallpaperView extends StatefulWidget {
 class _WallpaperViewState extends State<WallpaperView> {
   bool _isApplying = false;
 
-  // This function does the hard work of setting the wallpaper
   Future<void> _setWallpaper(int location) async {
     setState(() => _isApplying = true);
-    Navigator.pop(context); // Close the little menu
+    Navigator.pop(context);
 
     try {
-      // This line tells the phone to change the background
       String result = (await AsyncWallpaper.setWallpaper(
         url: widget.wallpaper.image,
         wallpaperLocation: location,
@@ -33,11 +34,9 @@ class _WallpaperViewState extends State<WallpaperView> {
       )).toString();
 
       if (result == 'Wallpaper set') {
-        // Save to cache as requested
         final prefs = await SharedPreferences.getInstance();
         List<String> savedWallpapers = prefs.getStringList('applied_wallpapers') ?? [];
         
-        // Convert current wallpaper to Map then JSON string
         Map<String, dynamic> wallpaperMap = {
           'id': widget.wallpaper.id,
           'category': widget.wallpaper.category,
@@ -56,48 +55,71 @@ class _WallpaperViewState extends State<WallpaperView> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result == 'Wallpaper set' ? 'Success!' : 'Failed')),
+        SnackBar(
+          content: Text(result == 'Wallpaper set' ? 'Successfully Applied!' : 'Failed to apply'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
     } on PlatformException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error!')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error applying wallpaper')));
     } finally {
       if (mounted) setState(() => _isApplying = false);
     }
   }
 
-  // This shows the menu to choose "Home Screen" or "Lock Screen"
   void _showApplyOptions() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Set Wallpaper", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text("Home Screen"),
-              onTap: () => _setWallpaper(AsyncWallpaper.HOME_SCREEN),
-            ),
-            ListTile(
-              leading: const Icon(Icons.lock),
-              title: const Text("Lock Screen"),
-              onTap: () => _setWallpaper(AsyncWallpaper.LOCK_SCREEN),
-            ),
-            ListTile(
-              leading: const Icon(Icons.smartphone),
-              title: const Text("Both Screens"),
-              onTap: () => _setWallpaper(AsyncWallpaper.BOTH_SCREENS),
-            ),
-          ],
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                "Set as wallpaper",
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _ApplyOptionTile(
+                icon: Iconsax.home,
+                title: "Home Screen",
+                onTap: () => _setWallpaper(AsyncWallpaper.HOME_SCREEN),
+              ),
+              const SizedBox(height: 12),
+              _ApplyOptionTile(
+                icon: Iconsax.lock,
+                title: "Lock Screen",
+                onTap: () => _setWallpaper(AsyncWallpaper.LOCK_SCREEN),
+              ),
+              const SizedBox(height: 12),
+              _ApplyOptionTile(
+                icon: Iconsax.mobile,
+                title: "Both Screens",
+                onTap: () => _setWallpaper(AsyncWallpaper.BOTH_SCREENS),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -110,43 +132,113 @@ class _WallpaperViewState extends State<WallpaperView> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        leading: const BackButton(color: Colors.white),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.black.withOpacity(0.14),
+            child: const BackButton(color: Colors.white),
+          ),
+        ),
       ),
       body: Stack(
         children: [
-          // This shows the big full-screen picture
           SizedBox.expand(
-            child: CachedNetworkImage(
-              imageUrl: widget.wallpaper.image,
-              fit: BoxFit.cover,
+            child: Hero(
+              tag: widget.wallpaper.image,
+              child: CachedNetworkImage(
+                imageUrl: widget.wallpaper.image,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          // Show a spinning circle while it's working
           if (_isApplying)
-            Container(
-              color: Colors.black54,
-              child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: Colors.black45,
+                child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+              ),
             ),
         ],
       ),
-      // The big "Apply" button at the bottom
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _showApplyOptions,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xB3000000),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: _showApplyOptions,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.15),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                ),
+                child: Text(
+                  "Apply Wallpaper",
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            child: const Text("Apply Wallpaper"),
           ),
         ),
       ),
     );
   }
 }
+
+class _ApplyOptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _ApplyOptionTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.withOpacity(0.1)),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 16),
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

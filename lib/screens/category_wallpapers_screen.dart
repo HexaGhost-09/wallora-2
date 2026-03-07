@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/category.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
+import '../widgets/wallpaper_card.dart';
 
 class CategoryWallpapersScreen extends StatefulWidget {
   final Category category;
@@ -41,28 +42,16 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
 
           final wallpapers = snapshot.data!;
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.7,
-            ),
+          return MasonryGridView.count(
+            padding: const EdgeInsets.all(24),
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
             itemCount: wallpapers.length,
             itemBuilder: (context, index) {
-              final wallpaper = wallpapers[index];
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: wallpaper.image,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[300],
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                ),
+              return WallpaperCard(
+                wallpaper: wallpapers[index],
+                index: index,
               );
             },
           );

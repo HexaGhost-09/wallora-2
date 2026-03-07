@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
 import 'wallpaper_card.dart';
@@ -25,26 +26,33 @@ class _WallpaperTrayState extends State<WallpaperTray> {
       future: _wallpapers,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text("No Wallpapers"));
         }
 
+        final wallpapers = snapshot.data!;
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.builder(
+          child: MasonryGridView.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            itemCount: wallpapers.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: snapshot.data!.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.55,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
             itemBuilder: (context, index) {
-              return WallpaperCard(wallpaper: snapshot.data![index]);
+              return WallpaperCard(
+                wallpaper: wallpapers[index],
+                index: index,
+              );
             },
           ),
         );

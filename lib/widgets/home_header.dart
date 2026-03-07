@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -11,36 +13,46 @@ class HomeHeader extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        // REDUCED PADDING
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 5),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 15),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // LOGO (Original Colors)
-                Image.asset(
-                  'assets/icon/icon.png',
-                  height: 30,
-                  width: 30,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(width: 12),
                 Text(
                   'Wallora',
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w900,
                     color: textColor,
-                    fontSize: 22,
+                    fontSize: 32,
+                    letterSpacing: -1,
+                  ),
+                ),
+                Text(
+                  'Explore unique wallpapers',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: textColor.withOpacity(0.6),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-            IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.search_rounded, size: 28, color: textColor),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: IconButton(
+                onPressed: () {},
+                icon: Icon(Iconsax.search_normal, size: 24, color: textColor),
+              ),
             ),
           ],
         ),

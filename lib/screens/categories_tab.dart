@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
 import 'category_wallpapers_screen.dart';
@@ -22,44 +24,84 @@ class _CategoriesTabState extends State<CategoriesTab> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Category>>(
-      future: _categoriesFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No categories found'));
-        }
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
 
-        final categories = snapshot.data!;
-
-        return SafeArea(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.8,
+    return Column(
+      children: [
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Categories',
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w900,
+                        color: textColor,
+                        fontSize: 32,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    Text(
+                      'Browse by style',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: textColor.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return _CategoryCard(category: category);
+          ),
+        ),
+        Expanded(
+          child: FutureBuilder<List<Category>>(
+            future: _categoriesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No categories found'));
+              }
+
+              final categories = snapshot.data!;
+
+              return GridView.builder(
+                padding: const EdgeInsets.fromLTRB(24, 5, 24, 100),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return _CategoryCard(category: category, index: index);
+                },
+              );
             },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }
 
 class _CategoryCard extends StatelessWidget {
   final Category category;
+  final int index;
 
-  const _CategoryCard({required this.category});
+  const _CategoryCard({required this.category, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -73,75 +115,78 @@ class _CategoryCard extends StatelessWidget {
         );
       },
       child: Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CachedNetworkImage(
-              imageUrl: category.thumbnail,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: Colors.grey[200],
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
-          ),
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.1),
-                    Colors.black.withOpacity(0.6),
-                  ],
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CachedNetworkImage(
+                imageUrl: category.thumbnail,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Theme.of(context).colorScheme.surface,
                 ),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 12,
-            left: 12,
-            right: 12,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.8),
+                    ],
                   ),
                 ),
-                if (category.details.isNotEmpty)
+              ),
+            ),
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    category.details,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
+                    category.title,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-              ],
+                  if (category.details.isNotEmpty)
+                    Text(
+                      category.details,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    ));
+          ],
+        ),
+      )
+      .animate(delay: (index * 50).ms)
+      .fadeIn(duration: 500.ms)
+      .scale(begin: const Offset(0.9, 0.9)),
+    );
   }
 }

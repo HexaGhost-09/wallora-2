@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import 'package:flutter/services.dart';
 import 'screens/home_page.dart';
 import 'services/update_service.dart';
@@ -62,35 +64,52 @@ class _WalloraAppState extends State<WalloraApp> {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white,
-        colorScheme: const ColorScheme.light(
-          primary: Colors.black,
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6366F1), // Indigo/Modern vibe
+          primary: const Color(0xFF6366F1),
           onPrimary: Colors.white,
           surface: Colors.white,
-          onSurface: Colors.black,
+          onSurface: const Color(0xFF1E293B),
         ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          iconTheme: IconThemeData(color: Colors.black),
+          centerTitle: true,
+          titleTextStyle: GoogleFonts.outfit(
+            color: const Color(0xFF1E293B),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
         ),
       ),
 
-      // --- DARK THEME (Pure Black) ---
+      // --- DARK THEME (Sleek Deep Black/Blue) ---
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-        colorScheme: const ColorScheme.dark(
-          primary: Colors.white,
-          onPrimary: Colors.black,
-          surface: Colors.black,
+        scaffoldBackgroundColor: const Color(0xFF0F172A), // Modern deep navy
+        textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF818CF8),
+          brightness: Brightness.dark,
+          primary: const Color(0xFF818CF8),
+          onPrimary: const Color(0xFF0F172A),
+          surface: const Color(0xFF1E293B),
           onSurface: Colors.white,
         ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          iconTheme: IconThemeData(color: Colors.white),
+          centerTitle: true,
+          titleTextStyle: GoogleFonts.outfit(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
       ),
       home: const HomePage(),
