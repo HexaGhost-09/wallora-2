@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  static const String authBaseUrl = 'https://ep-sparkling-dust-a7v4is48.neonauth.ap-southeast-2.aws.neon.tech/neondb/auth';
+  static const String authBaseUrl =
+      'https://ep-sparkling-dust-a7v4is48.neonauth.ap-southeast-2.aws.neon.tech/neondb/auth';
+  static const String _origin = 'https://localhost:3000';
 
   static final AuthService _instance = AuthService._internal();
   AuthService._internal();
@@ -14,76 +16,79 @@ class AuthService {
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
+  /// Low-level POST using dart:io to guarantee the Origin header is sent.
+  Future<Map<String, dynamic>?> _post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final client = HttpClient();
+    try {
+      final uri = Uri.parse('$authBaseUrl$path');
+      final request = await client.postUrl(uri);
+      request.headers.set('Content-Type', 'application/json; charset=utf-8');
+      request.headers.set('Origin', _origin);
+      request.headers.set('Accept', 'application/json');
+
+      final encoded = json.encode(body);
+      request.contentLength = utf8.encode(encoded).length;
+      request.write(encoded);
+
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      print('[AuthService] $path → ${response.statusCode}: $responseBody');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return json.decode(responseBody) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      print('[AuthService] POST $path exception: $e');
+      return null;
+    } finally {
+      client.close();
+    }
+  }
+
   Future<bool> signUp({
     required String name,
     required String email,
     required String password,
     String? image,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$authBaseUrl/sign-up/email'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'https://localhost:3000'
-        },
+    final body = {
+      'name': name,
+      'email': email,
+      'password': password,
+      'callbackURL': _origin,
+    };
+    if (image != null) body['image'] = image;
 
-        body: json.encode({
-          'name': name,
-          'email': email,
-          'password': password,
-          'image': image,
-          'callbackURL': 'https://localhost:3000', // Neon Auth needs a callback even for mobile
-        }),
-      );
+    final data = await _post('/sign-up/email', body);
+    if (data == null) return false;
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        _currentUser = UserModel.fromJson(data['user'] ?? data['data']?['user']);
-        await _saveUserToPrefs(data);
-        return true;
-      }
-      print('SignUp Failed: ${response.statusCode} - ${response.body}');
-      return false;
-    } catch (e) {
-      print('SignUp Exception: $e');
-      return false;
-    }
+    _currentUser = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+    await _saveUserToPrefs(data);
+    return true;
   }
 
   Future<bool> signIn({
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$authBaseUrl/sign-in/email'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'https://localhost:3000'
-        },
+    final data = await _post('/sign-in/email', {
+      'email': email,
+      'password': password,
+      'rememberMe': true,
+    });
+    if (data == null) return false;
 
-        body: json.encode({
-          'email': email,
-          'password': password,
-          'rememberMe': true,
-        }),
-      );
+    final userData = data['user'] as Map<String, dynamic>?;
+    if (userData == null) return false;
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        // data usually contains { user: {...}, session: {...} }
-        final userData = data['user'] ?? data['data']?['user'] ?? data;
-        _currentUser = UserModel.fromJson(userData);
-        await _saveUserToPrefs(data);
-        return true;
-      }
-      print('SignIn Failed: ${response.statusCode} - ${response.body}');
-      return false;
-    } catch (e) {
-      print('SignIn Exception: $e');
-      return false;
-    }
+    _currentUser = UserModel.fromJson(userData);
+    await _saveUserToPrefs(data);
+    return true;
   }
 
   Future<bool> signInWithProvider(String provider) async {
@@ -95,7 +100,7 @@ class AuthService {
       }
       return false;
     } catch (e) {
-      print('OAuth SignIn Error: $e');
+      print('[AuthService] OAuth SignIn Error: $e');
       return false;
     }
   }
@@ -109,9 +114,12 @@ class AuthService {
 
   Future<void> _saveUserToPrefs(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
-    final userData = data['user'] ?? data['data']?['user'] ?? data;
-    final token = data['token'] ?? data['session']?['token'] ?? data['data']?['session']?['token'] ?? '';
-    
+    final userData = data['user'];
+    // Better Auth returns token at root level: { token, user, redirect }
+    final token = data['token']?.toString() ??
+        (data['session']?['token'])?.toString() ??
+        '';
+
     await prefs.setString('user_data', json.encode(userData));
     await prefs.setString('auth_token', token);
   }
@@ -120,14 +128,16 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user_data');
     if (userData != null) {
-      _currentUser = UserModel.fromJson(json.decode(userData));
-      return true;
+      try {
+        _currentUser = UserModel.fromJson(
+            json.decode(userData) as Map<String, dynamic>);
+        return true;
+      } catch (_) {
+        await prefs.remove('user_data');
+      }
     }
     return false;
   }
 
-  String? get token {
-    // Ideally retrieve from prefs or state
-    return null;
-  }
+  String? get token => null;
 }

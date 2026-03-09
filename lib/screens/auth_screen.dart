@@ -43,8 +43,15 @@ class _AuthScreenState extends State<AuthScreen> {
       if (success) {
         Navigator.pop(context, true);
       } else {
+        final msg = _isLogin
+            ? 'Sign in failed. Please check your email and password.'
+            : 'Sign up failed. This email may already be registered.';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Auth failed. Please check your credentials.')),
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
