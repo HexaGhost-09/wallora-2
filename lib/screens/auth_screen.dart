@@ -137,14 +137,14 @@ class _AuthScreenState extends State<AuthScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildSocialButton(
-                  icon: Iconsax.google,
+                  icon: Icons.login,
                   label: 'Google',
                   onPressed: () => AuthService.instance.signInWithProvider('google'),
                   theme: theme,
                 ),
                 const SizedBox(width: 16),
                 _buildSocialButton(
-                  icon: Iconsax.path, // Github-like icon, wait, let's just use Icons.code or image if not available.
+                  icon: Icons.code, // Github-like icon, wait, let's just use Icons.code or image if not available.
                   label: 'GitHub',
                   onPressed: () => AuthService.instance.signInWithProvider('github'),
                   theme: theme,
