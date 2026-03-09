@@ -23,7 +23,11 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authBaseUrl/sign-up/email'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'https://localhost:3000'
+        },
+
         body: json.encode({
           'name': name,
           'email': email,
@@ -39,9 +43,10 @@ class AuthService {
         await _saveUserToPrefs(data);
         return true;
       }
+      print('SignUp Failed: ${response.statusCode} - ${response.body}');
       return false;
     } catch (e) {
-      print('SignUp Error: $e');
+      print('SignUp Exception: $e');
       return false;
     }
   }
@@ -53,7 +58,11 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$authBaseUrl/sign-in/email'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'https://localhost:3000'
+        },
+
         body: json.encode({
           'email': email,
           'password': password,
@@ -69,9 +78,10 @@ class AuthService {
         await _saveUserToPrefs(data);
         return true;
       }
+      print('SignIn Failed: ${response.statusCode} - ${response.body}');
       return false;
     } catch (e) {
-      print('SignIn Error: $e');
+      print('SignIn Exception: $e');
       return false;
     }
   }
@@ -100,7 +110,7 @@ class AuthService {
   Future<void> _saveUserToPrefs(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     final userData = data['user'] ?? data['data']?['user'] ?? data;
-    final token = data['session']?['token'] ?? data['data']?['session']?['token'] ?? '';
+    final token = data['token'] ?? data['session']?['token'] ?? data['data']?['session']?['token'] ?? '';
     
     await prefs.setString('user_data', json.encode(userData));
     await prefs.setString('auth_token', token);
