@@ -55,6 +55,18 @@ class FloatingNavBar extends StatelessWidget {
                     isSelected: selectedIndex == 2,
                     onTap: () => onTap(2),
                   ),
+                  _NavBarItem(
+                    icon: Iconsax.monitor,
+                    activeIcon: Iconsax.monitor,
+                    isSelected: selectedIndex == 3,
+                    onTap: () => onTap(3),
+                  ),
+                  _NavBarItem(
+                    icon: Iconsax.user,
+                    activeIcon: Iconsax.user_tick,
+                    isSelected: selectedIndex == 4,
+                    onTap: () => onTap(4),
+                  ),
                 ],
               ),
             ),

@@ -7,6 +7,7 @@ import 'services/update_service.dart';
 import 'services/theme_service.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,7 @@ void main() async {
   // Initialize Notifications and Background Worker
   await NotificationService.instance.init();
   await BackgroundService.instance.init();
+  await AuthService.instance.checkAuthStatus();
 
   // 1. Force Edge-to-Edge
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

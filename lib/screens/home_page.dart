@@ -3,6 +3,8 @@ import '../widgets/floating_nav_bar.dart';
 import 'home_tab.dart';
 import 'categories_tab.dart';
 import 'settings_page.dart';
+import 'test_tab.dart';
+import 'profile_tab.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +20,8 @@ class _HomePageState extends State<HomePage> {
     const HomeTab(),
     const CategoriesTab(),
     const SettingsPage(),
+    const TestTab(),
+    const ProfileTab(),
   ];
 
 
