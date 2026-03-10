@@ -19,7 +19,18 @@ class _CategoriesTabState extends State<CategoriesTab> {
   @override
   void initState() {
     super.initState();
-    _categoriesFuture = WalloraAPI.getCategories();
+    _loadCategories();
+  }
+
+  void _loadCategories({bool force = false}) {
+    setState(() {
+      _categoriesFuture = WalloraAPI.getCategories(forceRefresh: force);
+    });
+  }
+
+  Future<void> _handleRefresh() async {
+    _loadCategories(force: true);
+    await _categoriesFuture;
   }
 
   @override
@@ -62,34 +73,45 @@ class _CategoriesTabState extends State<CategoriesTab> {
           ),
         ),
         Expanded(
-          child: FutureBuilder<List<Category>>(
-            future: _categoriesFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No categories found'));
-              }
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: Theme.of(context).colorScheme.primary,
+            child: FutureBuilder<List<Category>>(
+              future: _categoriesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 200),
+                      Center(child: Text('No categories found')),
+                    ],
+                  );
+                }
 
-              final categories = snapshot.data!;
+                final categories = snapshot.data!;
 
-              return GridView.builder(
-                padding: const EdgeInsets.fromLTRB(24, 5, 24, 100),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.85,
-                ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  return _CategoryCard(category: category, index: index);
-                },
-              );
-            },
+                return GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 5, 24, 100),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: categories.length,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+                    return _CategoryCard(category: category, index: index);
+                  },
+                );
+              },
+            ),
           ),
         ),
       ],

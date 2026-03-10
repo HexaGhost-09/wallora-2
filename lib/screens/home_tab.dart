@@ -1,24 +1,47 @@
 import 'package:flutter/material.dart';
 import '../widgets/home_header.dart';
 import '../widgets/wallpaper_tray.dart';
+import '../services/api_service.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  Key _trayKey = UniqueKey();
+
+  Future<void> _handleRefresh() async {
+    // Force fetch from Neon and update cache
+    await WalloraAPI.getWallpapers(forceRefresh: true);
+    if (mounted) {
+      setState(() {
+        // Rebuild tray to show new data
+        _trayKey = UniqueKey();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        HomeHeader(),
-        // FIX: Expanded takes all remaining space, preventing overflow
+      children: [
+        const HomeHeader(),
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                WallpaperTray(),
-                // Space for floating nav bar
-                SizedBox(height: 100), 
-              ],
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: Theme.of(context).colorScheme.primary,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(), // Ensure it's always scrollable for RefreshIndicator
+              child: Column(
+                children: [
+                  WallpaperTray(key: _trayKey),
+                  // Space for floating nav bar
+                  const SizedBox(height: 100), 
+                ],
+              ),
             ),
           ),
         ),

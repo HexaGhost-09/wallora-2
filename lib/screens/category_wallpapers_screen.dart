@@ -20,7 +20,18 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
   @override
   void initState() {
     super.initState();
-    _wallpapersFuture = WalloraAPI.getWallpapersByCategory(widget.category.id);
+    _loadWallpapers();
+  }
+
+  void _loadWallpapers({bool force = false}) {
+    setState(() {
+      _wallpapersFuture = WalloraAPI.getWallpapersByCategory(widget.category.id, forceRefresh: force);
+    });
+  }
+
+  Future<void> _handleRefresh() async {
+    _loadWallpapers(force: true);
+    await _wallpapersFuture;
   }
 
   @override
@@ -29,33 +40,44 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
       appBar: AppBar(
         title: Text(widget.category.title),
       ),
-      body: FutureBuilder<List<Wallpaper>>(
-        future: _wallpapersFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No wallpapers found'));
-          }
-
-          final wallpapers = snapshot.data!;
-
-          return MasonryGridView.count(
-            padding: const EdgeInsets.all(24),
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            itemCount: wallpapers.length,
-            itemBuilder: (context, index) {
-              return WallpaperCard(
-                wallpaper: wallpapers[index],
-                index: index,
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: Theme.of(context).colorScheme.primary,
+        child: FutureBuilder<List<Wallpaper>>(
+          future: _wallpapersFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return ListView( // Use ListView to ensure it's scrollable for RefreshIndicator
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 200),
+                  Center(child: Text('No wallpapers found')),
+                ],
               );
-            },
-          );
-        },
+            }
+
+            final wallpapers = snapshot.data!;
+
+            return MasonryGridView.count(
+              padding: const EdgeInsets.all(24),
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              itemCount: wallpapers.length,
+              physics: const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
+              itemBuilder: (context, index) {
+                return WallpaperCard(
+                  wallpaper: wallpapers[index],
+                  index: index,
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

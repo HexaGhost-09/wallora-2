@@ -26,9 +26,20 @@ class WalloraAPI {
 
   // ── Wallpapers ─────────────────────────────────────────────────────────────
 
-  static Future<List<Wallpaper>> getWallpapers() async {
+  static Future<List<Wallpaper>> getWallpapers({bool forceRefresh = false}) async {
     const cacheKey = 'cache_wallpapers_all';
     final prefs = await SharedPreferences.getInstance();
+
+    if (!forceRefresh) {
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        try {
+          final List data = json.decode(cached);
+          final wallpapers = data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
+          if (wallpapers.isNotEmpty) return wallpapers;
+        } catch (_) {}
+      }
+    }
 
     try {
       final conn = await _connect();
@@ -41,7 +52,7 @@ class WalloraAPI {
       await prefs.setString(cacheKey, json.encode(wallpapers.map(_wpToJson).toList()));
       return wallpapers;
     } catch (e) {
-      // Fallback to cache when offline / DB unreachable
+      // Final fallback if fetch fails and we didn't return from cache already
       final cached = prefs.getString(cacheKey);
       if (cached != null) {
         final List data = json.decode(cached);
@@ -51,9 +62,20 @@ class WalloraAPI {
     }
   }
 
-  static Future<List<Wallpaper>> getWallpapersByCategory(String categoryId) async {
+  static Future<List<Wallpaper>> getWallpapersByCategory(String categoryId, {bool forceRefresh = false}) async {
     final cacheKey = 'cache_wallpapers_$categoryId';
     final prefs = await SharedPreferences.getInstance();
+
+    if (!forceRefresh) {
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        try {
+          final List data = json.decode(cached);
+          final wallpapers = data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
+          if (wallpapers.isNotEmpty) return wallpapers;
+        } catch (_) {}
+      }
+    }
 
     try {
       final conn = await _connect();
@@ -81,9 +103,20 @@ class WalloraAPI {
 
   // ── Categories ─────────────────────────────────────────────────────────────
 
-  static Future<List<Category>> getCategories() async {
+  static Future<List<Category>> getCategories({bool forceRefresh = false}) async {
     const cacheKey = 'cache_categories';
     final prefs = await SharedPreferences.getInstance();
+
+    if (!forceRefresh) {
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        try {
+          final List data = json.decode(cached);
+          final categories = data.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
+          if (categories.isNotEmpty) return categories;
+        } catch (_) {}
+      }
+    }
 
     try {
       final conn = await _connect();
