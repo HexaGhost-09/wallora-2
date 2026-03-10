@@ -33,6 +33,15 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
         forceRefresh: force,
         userId: userId,
       );
+      _wallpapersFuture.then((list) {
+        if (list.isNotEmpty && !force) {
+          WalloraAPI.syncLikes(list, userId).then((changed) {
+            if (changed && mounted) {
+              setState(() {});
+            }
+          });
+        }
+      });
     });
   }
 

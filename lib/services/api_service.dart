@@ -28,7 +28,7 @@ class WalloraAPI {
   // ── Wallpapers ─────────────────────────────────────────────────────────────
 
   static Future<List<Wallpaper>> getWallpapers({
-    bool forceRefresh = true,
+    bool forceRefresh = false,
     String? userId,
   }) async {
     const cacheKey = 'cache_wallpapers_all';
@@ -80,7 +80,7 @@ class WalloraAPI {
 
   static Future<List<Wallpaper>> getWallpapersByCategory(
     String categoryId, {
-    bool forceRefresh = true,
+    bool forceRefresh = false,
     String? userId,
   }) async {
     final cacheKey = 'cache_wallpapers_$categoryId';
@@ -204,6 +204,73 @@ class WalloraAPI {
     } catch (e) {
       print('[WalloraAPI] toggleLike Error: $e');
       rethrow;
+    }
+  }
+
+  // ── Sync Likes Live ────────────────────────────────────────────────────────
+
+  static Future<bool> syncLikes(List<Wallpaper> cached, String? userId) async {
+    if (cached.isEmpty) return false;
+    try {
+      final conn = await _connect();
+      final result = await conn.execute(
+        Sql.named('SELECT id, likes_count, EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = id AND user_id = @userId) as is_liked FROM wallpapers'),
+        parameters: {'userId': userId ?? ''},
+      );
+      await conn.close();
+
+      bool changed = false;
+      final map = <String, Map<String, dynamic>>{};
+      for (final row in result) {
+        map[row[0].toString()] = {
+          'count': row[1] as int? ?? 0,
+          'liked': row[2] as bool? ?? false,
+        };
+      }
+
+      for (var w in cached) {
+        final live = map[w.id];
+        if (live != null) {
+          if (w.likesCount != live['count'] || w.isLiked != live['liked']) {
+            w.likesCount = live['count'] as int;
+            w.isLiked = live['liked'] as bool;
+            changed = true;
+          }
+        }
+      }
+
+      if (changed) {
+        final prefs = await SharedPreferences.getInstance();
+        final keys = prefs.getKeys().where((k) => k.startsWith('cache_wallpapers_')).toList();
+        for (final key in keys) {
+          final cachedStr = prefs.getString(key);
+          if (cachedStr != null) {
+            try {
+              final List data = json.decode(cachedStr);
+              bool cacheChanged = false;
+              for (var i = 0; i < data.length; i++) {
+                final String wpId = data[i]['id'] as String;
+                final liveData = map[wpId];
+                if (liveData != null) {
+                  if (data[i]['likes_count'] != liveData['count'] || data[i]['is_liked'] != liveData['liked']) {
+                    data[i]['likes_count'] = liveData['count'];
+                    data[i]['is_liked'] = liveData['liked'];
+                    cacheChanged = true;
+                  }
+                }
+              }
+              if (cacheChanged) {
+                await prefs.setString(key, json.encode(data));
+              }
+            } catch (_) {}
+          }
+        }
+      }
+
+      return changed;
+    } catch (e) {
+      print('[WalloraAPI] syncLikes Error: $e');
+      return false;
     }
   }
 

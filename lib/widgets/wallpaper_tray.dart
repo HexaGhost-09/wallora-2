@@ -20,6 +20,15 @@ class _WallpaperTrayState extends State<WallpaperTray> {
     super.initState();
     final userId = AuthService.instance.currentUser?.id;
     _wallpapers = WalloraAPI.getWallpapers(userId: userId);
+    _wallpapers.then((list) {
+      if (list.isNotEmpty) {
+        WalloraAPI.syncLikes(list, userId).then((changed) {
+          if (changed && mounted) {
+            setState(() {});
+          }
+        });
+      }
+    });
   }
 
   @override
