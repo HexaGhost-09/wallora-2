@@ -8,6 +8,7 @@ class Wallpaper {
 
   int likesCount;
   bool isLiked;
+  bool isSaved;
 
   Wallpaper({
     required this.id,
@@ -18,6 +19,7 @@ class Wallpaper {
     required this.timestamp,
     this.likesCount = 0,
     this.isLiked = false,
+    this.isSaved = false,
   });
 
   factory Wallpaper.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class Wallpaper {
       timestamp: json['timestamp'],
       likesCount: json['likes_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,
+      isSaved: json['is_saved'] ?? false,
     );
   }
 }

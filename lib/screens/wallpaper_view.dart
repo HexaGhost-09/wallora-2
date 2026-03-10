@@ -25,13 +25,16 @@ class _WallpaperViewState extends State<WallpaperView> {
   bool _isApplying = false;
   late int _likesCount;
   late bool _isLiked;
+  late bool _isSaved;
   bool _isLiking = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     _likesCount = widget.wallpaper.likesCount;
     _isLiked = widget.wallpaper.isLiked;
+    _isSaved = widget.wallpaper.isSaved;
   }
 
   Future<void> _toggleLike() async {
@@ -79,6 +82,41 @@ class _WallpaperViewState extends State<WallpaperView> {
       Fluttertoast.showToast(msg: "Failed to update like status");
     } finally {
       setState(() => _isLiking = false);
+    }
+  }
+
+  Future<void> _toggleSave() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      Fluttertoast.showToast(msg: "Please login to save wallpapers");
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+      );
+      return;
+    }
+
+    if (_isSaving) return;
+
+    setState(() {
+      _isSaving = true;
+      _isSaved = !_isSaved;
+      widget.wallpaper.isSaved = _isSaved;
+    });
+
+    try {
+      await WalloraAPI.toggleSave(widget.wallpaper.id, user.id, !_isSaved);
+      Fluttertoast.showToast(
+        msg: _isSaved ? "Saved to collection" : "Removed from collection",
+      );
+    } catch (e) {
+      setState(() {
+        _isSaved = !_isSaved;
+        widget.wallpaper.isSaved = _isSaved;
+      });
+      Fluttertoast.showToast(msg: "Failed to update save status");
+    } finally {
+      setState(() => _isSaving = false);
     }
   }
 
@@ -211,6 +249,19 @@ class _WallpaperViewState extends State<WallpaperView> {
           ),
         ),
         actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.black.withOpacity(0.14),
+              child: IconButton(
+                icon: Icon(
+                  _isSaved ? Iconsax.archive_tick5 : Iconsax.archive_add,
+                  color: _isSaved ? Colors.white : Colors.white70,
+                ),
+                onPressed: _toggleSave,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: CircleAvatar(

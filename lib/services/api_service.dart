@@ -52,7 +52,8 @@ class WalloraAPI {
       final result = await conn.execute(
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
-          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked '
+          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
           'FROM wallpapers w ORDER BY w.timestamp DESC',
         ),
         parameters: {'userId': userId ?? ''},
@@ -104,7 +105,8 @@ class WalloraAPI {
       final result = await conn.execute(
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
-          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked '
+          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
           'FROM wallpapers w WHERE w.category = @cat ORDER BY w.timestamp DESC',
         ),
         parameters: {'cat': categoryId, 'userId': userId ?? ''},
@@ -214,7 +216,9 @@ class WalloraAPI {
     try {
       final conn = await _connect();
       final result = await conn.execute(
-        Sql.named('SELECT id, likes_count, EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = id AND user_id = @userId) as is_liked FROM wallpapers'),
+        Sql.named(
+          'SELECT id, likes_count, EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = id AND user_id = @userId) as is_liked, EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = id AND user_id = @userId) as is_saved FROM wallpapers',
+        ),
         parameters: {'userId': userId ?? ''},
       );
       await conn.close();
@@ -225,15 +229,19 @@ class WalloraAPI {
         map[row[0].toString()] = {
           'count': row[1] as int? ?? 0,
           'liked': row[2] as bool? ?? false,
+          'saved': row[3] as bool? ?? false,
         };
       }
 
       for (var w in cached) {
         final live = map[w.id];
         if (live != null) {
-          if (w.likesCount != live['count'] || w.isLiked != live['liked']) {
+          if (w.likesCount != live['count'] ||
+              w.isLiked != live['liked'] ||
+              w.isSaved != live['saved']) {
             w.likesCount = live['count'] as int;
             w.isLiked = live['liked'] as bool;
+            w.isSaved = live['saved'] as bool;
             changed = true;
           }
         }
@@ -241,7 +249,10 @@ class WalloraAPI {
 
       if (changed) {
         final prefs = await SharedPreferences.getInstance();
-        final keys = prefs.getKeys().where((k) => k.startsWith('cache_wallpapers_')).toList();
+        final keys = prefs
+            .getKeys()
+            .where((k) => k.startsWith('cache_wallpapers_'))
+            .toList();
         for (final key in keys) {
           final cachedStr = prefs.getString(key);
           if (cachedStr != null) {
@@ -252,9 +263,12 @@ class WalloraAPI {
                 final String wpId = data[i]['id'] as String;
                 final liveData = map[wpId];
                 if (liveData != null) {
-                  if (data[i]['likes_count'] != liveData['count'] || data[i]['is_liked'] != liveData['liked']) {
+                  if (data[i]['likes_count'] != liveData['count'] ||
+                      data[i]['is_liked'] != liveData['liked'] ||
+                      data[i]['is_saved'] != liveData['saved']) {
                     data[i]['likes_count'] = liveData['count'];
                     data[i]['is_liked'] = liveData['liked'];
+                    data[i]['is_saved'] = liveData['saved'];
                     cacheChanged = true;
                   }
                 }
@@ -271,6 +285,119 @@ class WalloraAPI {
     } catch (e) {
       print('[WalloraAPI] syncLikes Error: $e');
       return false;
+    }
+  }
+
+  // ── Saving ─────────────────────────────────────────────────────────────────
+
+  static Future<void> toggleSave(
+    String wallpaperId,
+    String userId,
+    bool isCurrentlySaved,
+  ) async {
+    try {
+      final conn = await _connect();
+      if (isCurrentlySaved) {
+        // Unsave
+        await conn.execute(
+          Sql.named(
+            'DELETE FROM wallpaper_saved WHERE wallpaper_id = @wpId AND user_id = @uId',
+          ),
+          parameters: {'wpId': wallpaperId, 'uId': userId},
+        );
+      } else {
+        // Save
+        await conn.execute(
+          Sql.named(
+            'INSERT INTO wallpaper_saved (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING',
+          ),
+          parameters: {'wpId': wallpaperId, 'uId': userId},
+        );
+      }
+      await conn.close();
+
+      // Update local cache
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs
+          .getKeys()
+          .where((k) => k.startsWith('cache_wallpapers_'))
+          .toList();
+      for (final key in keys) {
+        final cached = prefs.getString(key);
+        if (cached != null) {
+          try {
+            final List data = json.decode(cached);
+            bool changed = false;
+            for (var i = 0; i < data.length; i++) {
+              if (data[i]['id'] == wallpaperId) {
+                data[i]['is_saved'] = !isCurrentlySaved;
+                changed = true;
+                break;
+              }
+            }
+            if (changed) {
+              await prefs.setString(key, json.encode(data));
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      print('[WalloraAPI] toggleSave Error: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Wallpaper>> getSavedWallpapers({
+    bool forceRefresh = false,
+    required String userId,
+  }) async {
+    final cacheKey = 'cache_wallpapers_saved_$userId';
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!forceRefresh) {
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        try {
+          final List data = json.decode(cached);
+          final wallpapers = data
+              .map((e) => Wallpaper.fromJson(e as Map<String, dynamic>))
+              .toList();
+          if (wallpapers.isNotEmpty) return wallpapers;
+        } catch (_) {}
+      }
+    }
+
+    try {
+      final conn = await _connect();
+      final result = await conn.execute(
+        Sql.named(
+          'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
+          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'TRUE as is_saved '
+          'FROM wallpapers w '
+          'INNER JOIN wallpaper_saved ws ON w.id = ws.wallpaper_id '
+          'WHERE ws.user_id = @userId '
+          'ORDER BY ws.saved_at DESC',
+        ),
+        parameters: {'userId': userId},
+      );
+      await conn.close();
+
+      final wallpapers = _rowsToWallpapers(result);
+      await prefs.setString(
+        cacheKey,
+        json.encode(wallpapers.map(_wpToJson).toList()),
+      );
+      return wallpapers;
+    } catch (e) {
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        final List data = json.decode(cached);
+        return data
+            .map((e) => Wallpaper.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      rethrow;
     }
   }
 
@@ -352,6 +479,7 @@ class WalloraAPI {
         timestamp: row[5]?.toString() ?? '',
         likesCount: row[6] as int? ?? 0,
         isLiked: row[7] as bool? ?? false,
+        isSaved: row[8] as bool? ?? false,
       );
     }).toList();
   }
@@ -365,5 +493,6 @@ class WalloraAPI {
     'timestamp': w.timestamp,
     'likes_count': w.likesCount,
     'is_liked': w.isLiked,
+    'is_saved': w.isSaved,
   };
 }

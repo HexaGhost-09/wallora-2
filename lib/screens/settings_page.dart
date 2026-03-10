@@ -8,6 +8,7 @@ import '../services/update_service.dart';
 import '../services/theme_service.dart';
 import '../services/auth_service.dart';
 import 'auth_screen.dart';
+import 'saved_wallpapers_screen.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -169,6 +170,22 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                     onTap: _isLoggedIn ? null : _handleLogin,
                   ),
+                  if (_isLoggedIn) ...[
+                    const Divider(height: 1, indent: 56),
+                    _SettingsTile(
+                      icon: Iconsax.archive_tick,
+                      title: "Saved Wallpapers",
+                      subtitle: "View your saved wallpapers collection",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SavedWallpapersScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ).animate().fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
 
