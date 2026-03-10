@@ -241,44 +241,18 @@ class _WallpaperViewState extends State<WallpaperView> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: CircleAvatar(
-            backgroundColor: Colors.black.withOpacity(0.14),
+            backgroundColor: Colors.black.withOpacity(0.55),
             child: const BackButton(color: Colors.white),
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.14),
-              child: IconButton(
-                icon: Icon(
-                  _isSaved ? Iconsax.archive_tick5 : Iconsax.archive_add,
-                  color: _isSaved ? Colors.white : Colors.white70,
-                ),
-                onPressed: _toggleSave,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.14),
-              child: IconButton(
-                icon: Icon(
-                  _isLiked ? Iconsax.heart5 : Iconsax.heart,
-                  color: _isLiked ? Colors.red : Colors.white,
-                ),
-                onPressed: _toggleLike,
-              ),
-            ),
-          ),
-        ],
       ),
       body: Stack(
         children: [
+          // Full-screen wallpaper
           SizedBox.expand(
             child: Hero(
               tag: widget.wallpaper.image,
@@ -288,6 +262,8 @@ class _WallpaperViewState extends State<WallpaperView> {
               ),
             ),
           ),
+
+          // Applying overlay
           if (_isApplying)
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
@@ -298,63 +274,156 @@ class _WallpaperViewState extends State<WallpaperView> {
                 ),
               ),
             ),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: _showApplyOptions,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.15),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: Colors.white.withOpacity(0.2)),
-                  ),
+
+          // Bottom gradient + title + action buttons
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Colors.black, Colors.transparent],
+                  stops: [0.0, 1.0],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Apply Wallpaper",
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Wallpaper title
+                  if (widget.wallpaper.title.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        widget.wallpaper.title,
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            const Shadow(
+                              blurRadius: 8,
+                              color: Colors.black87,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (_likesCount > 0) ...[
-                      const SizedBox(width: 12),
-                      Container(width: 1, height: 20, color: Colors.white24),
-                      const SizedBox(width: 12),
-                      const Icon(
-                        Iconsax.heart5,
-                        size: 18,
-                        color: Colors.white70,
+
+                  // Action row: Like | Save | Apply Wallpaper
+                  Row(
+                    children: [
+                      // Like button
+                      _ActionButton(
+                        onPressed: _toggleLike,
+                        icon: _isLiked ? Iconsax.heart5 : Iconsax.heart,
+                        iconColor: _isLiked ? Colors.redAccent : Colors.white,
+                        label: _likesCount > 0 ? _likesCount.toString() : null,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _likesCount.toString(),
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white70,
+                      const SizedBox(width: 10),
+
+                      // Save button
+                      _ActionButton(
+                        onPressed: _toggleSave,
+                        icon: _isSaved
+                            ? Iconsax.archive_tick5
+                            : Iconsax.archive_add,
+                        iconColor:
+                            _isSaved ? Colors.greenAccent : Colors.white,
+                        label: null,
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Apply Wallpaper button (expands to fill remaining space)
+                      Expanded(
+                        child: SizedBox(
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: _showApplyOptions,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              "Apply Wallpaper",
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A compact square action button with solid dark background,
+/// always readable on both light and dark wallpapers.
+class _ActionButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color iconColor;
+  final String? label;
+
+  const _ActionButton({
+    required this.onPressed,
+    required this.icon,
+    required this.iconColor,
+    this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 54,
+        constraints: const BoxConstraints(minWidth: 54),
+        padding: label != null
+            ? const EdgeInsets.symmetric(horizontal: 14)
+            : EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: Colors.black87,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: iconColor, size: 22),
+            if (label != null) ...[
+              const SizedBox(width: 6),
+              Text(
+                label!,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

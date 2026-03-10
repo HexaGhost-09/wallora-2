@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_page.dart';
+import 'screens/welcome_screen.dart';
 import 'services/update_service.dart';
 import 'services/theme_service.dart';
 import 'services/notification_service.dart';
@@ -32,11 +34,15 @@ void main() async {
     ),
   );
 
-  runApp(const WalloraApp());
+  final prefs = await SharedPreferences.getInstance();
+  final isFirstTime = prefs.getBool('isFirstTime') ?? true;
+
+  runApp(WalloraApp(isFirstTime: isFirstTime));
 }
 
 class WalloraApp extends StatefulWidget {
-  const WalloraApp({super.key});
+  final bool isFirstTime;
+  const WalloraApp({super.key, required this.isFirstTime});
 
   @override
   State<WalloraApp> createState() => _WalloraAppState();
@@ -114,7 +120,7 @@ class _WalloraAppState extends State<WalloraApp> {
               iconTheme: const IconThemeData(color: Colors.white),
             ),
           ),
-          home: const HomePage(),
+          home: widget.isFirstTime ? const WelcomeScreen() : const HomePage(),
         );
       },
     );
