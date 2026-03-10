@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/update_service.dart';
 import '../services/theme_service.dart';
+import '../services/auth_service.dart';
+import 'auth_screen.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,11 +20,15 @@ class _SettingsPageState extends State<SettingsPage> {
   String _version = '';
   UpdateInfo? _updateInfo;
   bool _isLoading = false;
+  bool _isLoggedIn = false;
+  String? _userName;
+  String? _userEmail;
 
   @override
   void initState() {
     super.initState();
     _loadVersion();
+    _checkAuth();
     _updateInfo = UpdateService.instance.latestUpdate;
   }
 
@@ -31,6 +37,33 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _version = packageInfo.version;
     });
+  }
+
+  Future<void> _checkAuth() async {
+    final status = await AuthService.instance.checkAuthStatus();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = status;
+        _userName = AuthService.instance.currentUser?.name;
+        _userEmail = AuthService.instance.currentUser?.email;
+      });
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AuthScreen()),
+    );
+
+    if (result == true) {
+      _checkAuth();
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    await AuthService.instance.signOut();
+    _checkAuth();
   }
 
   Future<void> _checkUpdate() async {
@@ -91,7 +124,40 @@ class _SettingsPageState extends State<SettingsPage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 40),
+              
+              const SizedBox(height: 32),
+              
+              // --- PROFILE SECTION ---
+              _SettingsSection(
+                title: "Account",
+                children: [
+                   _SettingsTile(
+                    icon: _isLoggedIn ? Iconsax.user_tick : Iconsax.user,
+                    title: _isLoggedIn ? (_userName ?? "User") : "Profile",
+                    subtitle: _isLoggedIn ? (_userEmail ?? "Logged in") : "Login to sync favorites",
+                    trailing: _isLoggedIn 
+                      ? TextButton(
+                          onPressed: _handleLogout,
+                          child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                        )
+                      : ElevatedButton(
+                          onPressed: _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: const Text("Login", style: TextStyle(fontSize: 12)),
+                        ),
+                    onTap: _isLoggedIn ? null : _handleLogin,
+                  ),
+                ],
+              ).animate().fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
+
+              const SizedBox(height: 24),
               
               _SettingsSection(
                 title: "Appearance",
@@ -122,7 +188,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ],
-              ).animate().fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
+              ).animate(delay: 100.ms).fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
               
               const SizedBox(height: 24),
               
@@ -190,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                 ],
-              ).animate(delay: 100.ms).fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
+              ).animate(delay: 200.ms).fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
               
               const SizedBox(height: 40),
               
@@ -209,7 +275,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
-              ).animate(delay: 200.ms).fadeIn(),
+              ).animate(delay: 300.ms).fadeIn(),
               const SizedBox(height: 100),
             ],
           ),
