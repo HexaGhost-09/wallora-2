@@ -1,7 +1,8 @@
 name: wallora
 description: "Wallpapers App"
 publish_to: 'none'
-version: 1.5.0+1
+
+version: 1.5.1+1
 
 environment:
   sdk: ^3.10.4
