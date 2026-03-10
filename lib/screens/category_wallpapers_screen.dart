@@ -3,6 +3,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/category.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/wallpaper_card.dart';
 
 class CategoryWallpapersScreen extends StatefulWidget {
@@ -24,8 +25,13 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
   }
 
   void _loadWallpapers({bool force = false}) {
+    final userId = AuthService.instance.currentUser?.id;
     setState(() {
-      _wallpapersFuture = WalloraAPI.getWallpapersByCategory(widget.category.id, forceRefresh: force);
+      _wallpapersFuture = WalloraAPI.getWallpapersByCategory(
+        widget.category.id, 
+        forceRefresh: force,
+        userId: userId,
+      );
     });
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/home_header.dart';
 import '../widgets/wallpaper_tray.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -15,7 +16,8 @@ class _HomeTabState extends State<HomeTab> {
 
   Future<void> _handleRefresh() async {
     // Force fetch from Neon and update cache
-    await WalloraAPI.getWallpapers(forceRefresh: true);
+    final userId = AuthService.instance.currentUser?.id;
+    await WalloraAPI.getWallpapers(forceRefresh: true, userId: userId);
     if (mounted) {
       setState(() {
         // Rebuild tray to show new data

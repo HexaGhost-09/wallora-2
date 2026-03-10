@@ -8,6 +8,10 @@ import 'dart:convert';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/wallpaper_model.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import 'auth_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class WallpaperView extends StatefulWidget {
   final Wallpaper wallpaper;
@@ -19,6 +23,60 @@ class WallpaperView extends StatefulWidget {
 
 class _WallpaperViewState extends State<WallpaperView> {
   bool _isApplying = false;
+  late int _likesCount;
+  late bool _isLiked;
+  bool _isLiking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _likesCount = widget.wallpaper.likesCount;
+    _isLiked = widget.wallpaper.isLiked;
+  }
+
+  Future<void> _toggleLike() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      Fluttertoast.showToast(msg: "Please login to like wallpapers");
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+      );
+      return;
+    }
+
+    if (_isLiking) return;
+
+    setState(() {
+      _isLiking = true;
+      // Optimistic update
+      if (_isLiked) {
+        _likesCount--;
+        _isLiked = false;
+      } else {
+        _likesCount++;
+        _isLiked = true;
+      }
+    });
+
+    try {
+      await WalloraAPI.toggleLike(widget.wallpaper.id, user.id, !_isLiked);
+    } catch (e) {
+      // Revert on error
+      setState(() {
+        if (_isLiked) {
+          _likesCount--;
+          _isLiked = false;
+        } else {
+          _likesCount++;
+          _isLiked = true;
+        }
+      });
+      Fluttertoast.showToast(msg: "Failed to update like status");
+    } finally {
+      setState(() => _isLiking = false);
+    }
+  }
 
   Future<void> _setWallpaper(int location) async {
     setState(() => _isApplying = true);
@@ -139,6 +197,21 @@ class _WallpaperViewState extends State<WallpaperView> {
             child: const BackButton(color: Colors.white),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.black.withOpacity(0.14),
+              child: IconButton(
+                icon: Icon(
+                  _isLiked ? Iconsax.heart5 : Iconsax.heart,
+                  color: _isLiked ? Colors.red : Colors.white,
+                ),
+                onPressed: _toggleLike,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -182,12 +255,36 @@ class _WallpaperViewState extends State<WallpaperView> {
                     side: BorderSide(color: Colors.white.withOpacity(0.2)),
                   ),
                 ),
-                child: Text(
-                  "Apply Wallpaper",
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Apply Wallpaper",
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_likesCount > 0) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 1,
+                        height: 20,
+                        color: Colors.white24,
+                      ),
+                      const SizedBox(width: 12),
+                      const Icon(Iconsax.heart5, size: 18, color: Colors.white70),
+                      const SizedBox(width: 4),
+                      Text(
+                        _likesCount.toString(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),

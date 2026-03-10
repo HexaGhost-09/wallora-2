@@ -26,7 +26,7 @@ class WalloraAPI {
 
   // ── Wallpapers ─────────────────────────────────────────────────────────────
 
-  static Future<List<Wallpaper>> getWallpapers({bool forceRefresh = false}) async {
+  static Future<List<Wallpaper>> getWallpapers({bool forceRefresh = false, String? userId}) async {
     const cacheKey = 'cache_wallpapers_all';
     final prefs = await SharedPreferences.getInstance();
 
@@ -44,7 +44,12 @@ class WalloraAPI {
     try {
       final conn = await _connect();
       final result = await conn.execute(
-        'SELECT id, category, title, image, download, timestamp FROM wallpapers ORDER BY timestamp DESC',
+        Sql.named(
+          'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
+          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked '
+          'FROM wallpapers w ORDER BY w.timestamp DESC'
+        ),
+        parameters: {'userId': userId ?? ''},
       );
       await conn.close();
 
@@ -62,7 +67,7 @@ class WalloraAPI {
     }
   }
 
-  static Future<List<Wallpaper>> getWallpapersByCategory(String categoryId, {bool forceRefresh = false}) async {
+  static Future<List<Wallpaper>> getWallpapersByCategory(String categoryId, {bool forceRefresh = false, String? userId}) async {
     final cacheKey = 'cache_wallpapers_$categoryId';
     final prefs = await SharedPreferences.getInstance();
 
@@ -81,10 +86,14 @@ class WalloraAPI {
       final conn = await _connect();
       final result = await conn.execute(
         Sql.named(
-          'SELECT id, category, title, image, download, timestamp '
-          'FROM wallpapers WHERE category = @cat ORDER BY timestamp DESC',
+          'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
+          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked '
+          'FROM wallpapers w WHERE w.category = @cat ORDER BY w.timestamp DESC',
         ),
-        parameters: {'cat': categoryId},
+        parameters: {
+          'cat': categoryId,
+          'userId': userId ?? '',
+        },
       );
       await conn.close();
 
@@ -97,6 +106,39 @@ class WalloraAPI {
         final List data = json.decode(cached);
         return data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
       }
+      rethrow;
+    }
+  }
+
+  // ── Liking ─────────────────────────────────────────────────────────────────
+
+  static Future<void> toggleLike(String wallpaperId, String userId, bool isCurrentlyLiked) async {
+    try {
+      final conn = await _connect();
+      if (isCurrentlyLiked) {
+        // Unlike
+        await conn.execute(
+          Sql.named('DELETE FROM wallpaper_likes WHERE wallpaper_id = @wpId AND user_id = @uId'),
+          parameters: {'wpId': wallpaperId, 'uId': userId},
+        );
+        await conn.execute(
+          Sql.named('UPDATE wallpapers SET likes_count = GREATEST(0, likes_count - 1) WHERE id = @wpId'),
+          parameters: {'wpId': wallpaperId},
+        );
+      } else {
+        // Like
+        await conn.execute(
+          Sql.named('INSERT INTO wallpaper_likes (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING'),
+          parameters: {'wpId': wallpaperId, 'uId': userId},
+        );
+        await conn.execute(
+          Sql.named('UPDATE wallpapers SET likes_count = likes_count + 1 WHERE id = @wpId'),
+          parameters: {'wpId': wallpaperId},
+        );
+      }
+      await conn.close();
+    } catch (e) {
+      print('[WalloraAPI] toggleLike Error: $e');
       rethrow;
     }
   }
@@ -157,12 +199,14 @@ class WalloraAPI {
   static List<Wallpaper> _rowsToWallpapers(List<ResultRow> rows) {
     return rows.map((row) {
       return Wallpaper(
-        id:        row[0].toString(),
-        category:  row[1].toString(),
-        title:     row[2].toString(),
-        image:     row[3].toString(),
-        download:  row[4].toString(),
-        timestamp: row[5]?.toString() ?? '',
+        id:          row[0].toString(),
+        category:    row[1].toString(),
+        title:       row[2].toString(),
+        image:       row[3].toString(),
+        download:    row[4].toString(),
+        timestamp:   row[5]?.toString() ?? '',
+        likesCount:  row[6] as int? ?? 0,
+        isLiked:     row[7] as bool? ?? false,
       );
     }).toList();
   }
@@ -174,5 +218,7 @@ class WalloraAPI {
     'image': w.image,
     'download': w.download,
     'timestamp': w.timestamp,
+    'likes_count': w.likesCount,
+    'is_liked': w.isLiked,
   };
 }

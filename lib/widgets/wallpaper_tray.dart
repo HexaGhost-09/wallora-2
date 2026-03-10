@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import 'wallpaper_card.dart';
 
 class WallpaperTray extends StatefulWidget {
@@ -17,7 +18,8 @@ class _WallpaperTrayState extends State<WallpaperTray> {
   @override
   void initState() {
     super.initState();
-    _wallpapers = WalloraAPI.getWallpapers();
+    final userId = AuthService.instance.currentUser?.id;
+    _wallpapers = WalloraAPI.getWallpapers(userId: userId);
   }
 
   @override
