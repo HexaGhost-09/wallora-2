@@ -28,7 +28,7 @@ class WalloraAPI {
   // ── Wallpapers ─────────────────────────────────────────────────────────────
 
   static Future<List<Wallpaper>> getWallpapers({
-    bool forceRefresh = false,
+    bool forceRefresh = true,
     String? userId,
   }) async {
     const cacheKey = 'cache_wallpapers_all';
@@ -80,7 +80,7 @@ class WalloraAPI {
 
   static Future<List<Wallpaper>> getWallpapersByCategory(
     String categoryId, {
-    bool forceRefresh = false,
+    bool forceRefresh = true,
     String? userId,
   }) async {
     final cacheKey = 'cache_wallpapers_$categoryId';
@@ -148,7 +148,7 @@ class WalloraAPI {
         );
         await conn.execute(
           Sql.named(
-            'UPDATE wallpapers SET likes_count = GREATEST(0, likes_count - 1) WHERE id = @wpId',
+            'UPDATE wallpapers SET likes_count = (SELECT COUNT(*) FROM wallpaper_likes WHERE wallpaper_id = @wpId) WHERE id = @wpId',
           ),
           parameters: {'wpId': wallpaperId},
         );
@@ -162,7 +162,7 @@ class WalloraAPI {
         );
         await conn.execute(
           Sql.named(
-            'UPDATE wallpapers SET likes_count = likes_count + 1 WHERE id = @wpId',
+            'UPDATE wallpapers SET likes_count = (SELECT COUNT(*) FROM wallpaper_likes WHERE wallpaper_id = @wpId) WHERE id = @wpId',
           ),
           parameters: {'wpId': wallpaperId},
         );
