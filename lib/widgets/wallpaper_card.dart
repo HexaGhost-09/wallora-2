@@ -24,30 +24,33 @@ class WallpaperCard extends StatelessWidget {
       },
       child: Hero(
         tag: wallpaper.image,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: CachedNetworkImage(
-              imageUrl: wallpaper.image,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Shimmer.fromColors(
-                baseColor: Theme.of(context).colorScheme.surface,
-                highlightColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
-                child: Container(color: Colors.white),
-              ),
-                errorWidget: (context, url, error) => Container(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: const Icon(Icons.error_outline),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: CachedNetworkImage(
+                  imageUrl: wallpaper.image,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Shimmer.fromColors(
+                    baseColor: Theme.of(context).colorScheme.surface,
+                    highlightColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                    child: Container(color: Colors.white),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: const Icon(Icons.error_outline),
+                  ),
                 ),
               ),
             ),
