@@ -7,7 +7,8 @@ class AppTheme {
       seedColor: const Color.fromARGB(255, 246, 246, 247),
       brightness: Brightness.light,
     ),
-    scaffoldBackgroundColor: Colors.black, // Kept your specific black background
+    scaffoldBackgroundColor:
+        Colors.black, // Kept your specific black background
   );
 
   static final dark = ThemeData(

@@ -57,6 +57,8 @@ class _WallpaperViewState extends State<WallpaperView> {
         _likesCount++;
         _isLiked = true;
       }
+      widget.wallpaper.isLiked = _isLiked;
+      widget.wallpaper.likesCount = _likesCount;
     });
 
     try {
@@ -71,6 +73,8 @@ class _WallpaperViewState extends State<WallpaperView> {
           _likesCount++;
           _isLiked = true;
         }
+        widget.wallpaper.isLiked = _isLiked;
+        widget.wallpaper.likesCount = _likesCount;
       });
       Fluttertoast.showToast(msg: "Failed to update like status");
     } finally {
@@ -93,8 +97,9 @@ class _WallpaperViewState extends State<WallpaperView> {
 
       if (result == 'Wallpaper set') {
         final prefs = await SharedPreferences.getInstance();
-        List<String> savedWallpapers = prefs.getStringList('applied_wallpapers') ?? [];
-        
+        List<String> savedWallpapers =
+            prefs.getStringList('applied_wallpapers') ?? [];
+
         Map<String, dynamic> wallpaperMap = {
           'id': widget.wallpaper.id,
           'category': widget.wallpaper.category,
@@ -103,7 +108,7 @@ class _WallpaperViewState extends State<WallpaperView> {
           'download': widget.wallpaper.download,
           'timestamp': widget.wallpaper.timestamp,
         };
-        
+
         String jsonStr = json.encode(wallpaperMap);
         if (!savedWallpapers.contains(jsonStr)) {
           savedWallpapers.add(jsonStr);
@@ -114,14 +119,22 @@ class _WallpaperViewState extends State<WallpaperView> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result == 'Wallpaper set' ? 'Successfully Applied!' : 'Failed to apply'),
+          content: Text(
+            result == 'Wallpaper set'
+                ? 'Successfully Applied!'
+                : 'Failed to apply',
+          ),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     } on PlatformException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error applying wallpaper')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error applying wallpaper')));
     } finally {
       if (mounted) setState(() => _isApplying = false);
     }
@@ -229,7 +242,9 @@ class _WallpaperViewState extends State<WallpaperView> {
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
                 color: Colors.black45,
-                child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+                child: const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
               ),
             ),
         ],
@@ -267,13 +282,13 @@ class _WallpaperViewState extends State<WallpaperView> {
                     ),
                     if (_likesCount > 0) ...[
                       const SizedBox(width: 12),
-                      Container(
-                        width: 1,
-                        height: 20,
-                        color: Colors.white24,
-                      ),
+                      Container(width: 1, height: 20, color: Colors.white24),
                       const SizedBox(width: 12),
-                      const Icon(Iconsax.heart5, size: 18, color: Colors.white70),
+                      const Icon(
+                        Iconsax.heart5,
+                        size: 18,
+                        color: Colors.white70,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         _likesCount.toString(),
@@ -338,4 +353,4 @@ class _ApplyOptionTile extends StatelessWidget {
       ),
     );
   }
-}
+}

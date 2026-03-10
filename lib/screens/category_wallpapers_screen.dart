@@ -12,7 +12,8 @@ class CategoryWallpapersScreen extends StatefulWidget {
   const CategoryWallpapersScreen({super.key, required this.category});
 
   @override
-  State<CategoryWallpapersScreen> createState() => _CategoryWallpapersScreenState();
+  State<CategoryWallpapersScreen> createState() =>
+      _CategoryWallpapersScreenState();
 }
 
 class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
@@ -28,7 +29,7 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
     final userId = AuthService.instance.currentUser?.id;
     setState(() {
       _wallpapersFuture = WalloraAPI.getWallpapersByCategory(
-        widget.category.id, 
+        widget.category.id,
         forceRefresh: force,
         userId: userId,
       );
@@ -43,9 +44,7 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.category.title),
-      ),
+      appBar: AppBar(title: Text(widget.category.title)),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         color: Theme.of(context).colorScheme.primary,
@@ -57,7 +56,8 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return ListView( // Use ListView to ensure it's scrollable for RefreshIndicator
+              return ListView(
+                // Use ListView to ensure it's scrollable for RefreshIndicator
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   SizedBox(height: 200),
@@ -74,7 +74,8 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               itemCount: wallpapers.length,
-              physics: const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
+              physics:
+                  const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
               itemBuilder: (context, index) {
                 return WallpaperCard(
                   wallpaper: wallpapers[index],

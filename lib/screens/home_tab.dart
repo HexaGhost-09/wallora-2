@@ -36,12 +36,13 @@ class _HomeTabState extends State<HomeTab> {
             onRefresh: _handleRefresh,
             color: Theme.of(context).colorScheme.primary,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(), // Ensure it's always scrollable for RefreshIndicator
+              physics:
+                  const AlwaysScrollableScrollPhysics(), // Ensure it's always scrollable for RefreshIndicator
               child: Column(
                 children: [
                   WallpaperTray(key: _trayKey),
                   // Space for floating nav bar
-                  const SizedBox(height: 100), 
+                  const SizedBox(height: 100),
                 ],
               ),
             ),

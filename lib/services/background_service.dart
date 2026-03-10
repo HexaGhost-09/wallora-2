@@ -10,7 +10,10 @@ void callbackDispatcher() {
     if (task == updateTaskString) {
       await NotificationService.instance.init();
       // Force a check and show the notification if there's an update
-      await UpdateService.instance.checkForUpdates(force: true, showNotification: true);
+      await UpdateService.instance.checkForUpdates(
+        force: true,
+        showNotification: true,
+      );
     }
     return Future.value(true);
   });
@@ -21,19 +24,14 @@ class BackgroundService {
   BackgroundService._();
 
   Future<void> init() async {
-    await Workmanager().initialize(
-      callbackDispatcher,
-      isInDebugMode: false,
-    );
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
 
     // Register a periodic task to run approximately once a day
     await Workmanager().registerPeriodicTask(
       "1",
       updateTaskString,
       frequency: const Duration(hours: 24),
-      constraints: Constraints(
-        networkType: NetworkType.connected,
-      ),
+      constraints: Constraints(networkType: NetworkType.connected),
     );
   }
 }

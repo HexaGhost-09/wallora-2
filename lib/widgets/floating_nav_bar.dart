@@ -93,7 +93,9 @@ class _NavBarItem extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+              color: isSelected
+                  ? primaryColor.withOpacity(0.1)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
@@ -116,4 +118,4 @@ class _NavBarItem extends StatelessWidget {
       ),
     );
   }
-}
+}

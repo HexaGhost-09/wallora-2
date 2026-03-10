@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -26,9 +25,12 @@ class UpdateService {
   UpdateInfo? get latestUpdate => _latestUpdate;
 
   bool _isChecking = false;
-  
+
   // Cache the update info to avoid repeated API calls if not forced
-  Future<UpdateInfo?> checkForUpdates({bool force = false, bool showNotification = false}) async {
+  Future<UpdateInfo?> checkForUpdates({
+    bool force = false,
+    bool showNotification = false,
+  }) async {
     if (_latestUpdate != null && !force) return _latestUpdate;
     if (_isChecking) return null;
 
@@ -41,7 +43,9 @@ class UpdateService {
 
       // Fetch latest release from GitHub
       final response = await http.get(
-        Uri.parse('https://api.github.com/repos/HexaGhost-09/wallora-2/releases/latest'),
+        Uri.parse(
+          'https://api.github.com/repos/HexaGhost-09/wallora-2/releases/latest',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -49,10 +53,12 @@ class UpdateService {
         final String tagName = data['tag_name'] ?? '';
         final String htmlUrl = data['html_url'] ?? '';
         final String body = data['body'] ?? '';
-        
+
         // Clean tag name (remove 'v' prefix if present)
-        final cleanTag = tagName.startsWith('v') ? tagName.substring(1) : tagName;
-        
+        final cleanTag = tagName.startsWith('v')
+            ? tagName.substring(1)
+            : tagName;
+
         // Simple string comparison for now, or use a semver parser if strict
         // Assuming format 1.2.6
         final isAvailable = _isVersionNewer(currentVersion, cleanTag);
@@ -63,14 +69,18 @@ class UpdateService {
           releaseNotes: body,
           isAvailable: isAvailable,
         );
-        
+
         if (isAvailable && showNotification) {
           final String version = isAvailable ? cleanTag : currentVersion;
           // Build SourceForge link dynamically for notification
-          final sfUrl = 'https://sourceforge.net/projects/wallora-android-app/files/v$version/app-release.apk/download';
-          await NotificationService.instance.showUpdateNotification(cleanTag, sfUrl);
+          final sfUrl =
+              'https://sourceforge.net/projects/wallora-android-app/files/v$version/app-release.apk/download';
+          await NotificationService.instance.showUpdateNotification(
+            cleanTag,
+            sfUrl,
+          );
         }
-        
+
         return _latestUpdate;
       }
     } catch (e) {
@@ -80,7 +90,7 @@ class UpdateService {
     }
     return null;
   }
-  
+
   // Compares two version strings (e.g., "1.2.6" vs "1.2.7")
   // Returns true if remote is newer than local
   bool _isVersionNewer(String local, String remote) {
@@ -88,18 +98,17 @@ class UpdateService {
       // Remove any build metadata involved (e.g. +1)
       final localClean = local.split('+')[0];
       final remoteClean = remote.split('+')[0]; // Just in case
-      
+
       List<int> localParts = localClean.split('.').map(int.parse).toList();
       List<int> remoteParts = remoteClean.split('.').map(int.parse).toList();
-      
+
       for (int i = 0; i < localParts.length && i < remoteParts.length; i++) {
         if (remoteParts[i] > localParts[i]) return true;
         if (remoteParts[i] < localParts[i]) return false;
       }
-      
+
       // If we are here, prefix matches. If remote has more parts, it's newer (usually)
       if (remoteParts.length > localParts.length) return true;
-      
     } catch (e) {
       print("Version parse error: $e");
     }

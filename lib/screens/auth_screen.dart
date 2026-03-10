@@ -13,17 +13,18 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLogin = true;
   bool _isLoading = false;
-  
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
 
   Future<void> _submit() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) return;
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty)
+      return;
     if (!_isLogin && _nameController.text.isEmpty) return;
 
     setState(() => _isLoading = true);
-    
+
     bool success = false;
     if (_isLogin) {
       success = await AuthService.instance.signIn(
@@ -60,7 +61,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: const CloseButton(),
@@ -81,24 +82,24 @@ class _AuthScreenState extends State<AuthScreen> {
             ).animate().fadeIn().slideX(),
             const SizedBox(height: 8),
             Text(
-              _isLogin 
-                ? 'Sign in to access your wallpapers' 
-                : 'Join Wallora and sync your favorite backgrounds',
+              _isLogin
+                  ? 'Sign in to access your wallpapers'
+                  : 'Join Wallora and sync your favorite backgrounds',
               style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
             ).animate().fadeIn(delay: 100.ms),
-            
+
             const SizedBox(height: 48),
-            
-            if (!_isLogin) 
+
+            if (!_isLogin)
               _buildField(
                 controller: _nameController,
                 label: 'Name',
                 hint: 'John Doe',
                 icon: Iconsax.user,
               ).animate().fadeIn().slideY(),
-            
+
             const SizedBox(height: 16),
-            
+
             _buildField(
               controller: _emailController,
               label: 'Email Address',
@@ -106,9 +107,9 @@ class _AuthScreenState extends State<AuthScreen> {
               icon: Iconsax.sms,
               keyboardType: TextInputType.emailAddress,
             ).animate().fadeIn(delay: 200.ms).slideY(),
-            
+
             const SizedBox(height: 16),
-            
+
             _buildField(
               controller: _passwordController,
               label: 'Password',
@@ -116,9 +117,9 @@ class _AuthScreenState extends State<AuthScreen> {
               icon: Iconsax.lock,
               isPassword: true,
             ).animate().fadeIn(delay: 300.ms).slideY(),
-            
+
             const SizedBox(height: 40),
-            
+
             SizedBox(
               width: double.infinity,
               height: 56,
@@ -127,17 +128,33 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white) 
-                  : Text(_isLogin ? 'Sign In' : 'Sign Up', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        _isLogin ? 'Sign In' : 'Sign Up',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ).animate().fadeIn(delay: 400.ms).scale(),
-            
+
             const SizedBox(height: 16),
-            const Center(child: Text("OR", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500))),
+            const Center(
+              child: Text(
+                "OR",
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
 
             Row(
@@ -146,21 +163,24 @@ class _AuthScreenState extends State<AuthScreen> {
                 _buildSocialButton(
                   icon: Icons.login,
                   label: 'Google',
-                  onPressed: () => AuthService.instance.signInWithProvider('google'),
+                  onPressed: () =>
+                      AuthService.instance.signInWithProvider('google'),
                   theme: theme,
                 ),
                 const SizedBox(width: 16),
                 _buildSocialButton(
-                  icon: Icons.code, // Github-like icon, wait, let's just use Icons.code or image if not available.
+                  icon: Icons
+                      .code, // Github-like icon, wait, let's just use Icons.code or image if not available.
                   label: 'GitHub',
-                  onPressed: () => AuthService.instance.signInWithProvider('github'),
+                  onPressed: () =>
+                      AuthService.instance.signInWithProvider('github'),
                   theme: theme,
                 ),
               ],
             ).animate().fadeIn(delay: 500.ms).slideY(),
 
             const SizedBox(height: 24),
-            
+
             Center(
               child: TextButton(
                 onPressed: () => setState(() => _isLogin = !_isLogin),
@@ -168,10 +188,17 @@ class _AuthScreenState extends State<AuthScreen> {
                   text: TextSpan(
                     style: theme.textTheme.bodyMedium,
                     children: [
-                      TextSpan(text: _isLogin ? "Don't have an account? " : "Already have an account? "),
+                      TextSpan(
+                        text: _isLogin
+                            ? "Don't have an account? "
+                            : "Already have an account? ",
+                      ),
                       TextSpan(
                         text: _isLogin ? "Sign Up" : "Sign In",
-                        style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -195,7 +222,10 @@ class _AuthScreenState extends State<AuthScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -216,7 +246,10 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
             ),
           ),
         ),

@@ -5,9 +5,10 @@ import '../models/wallpaper_model.dart';
 import '../models/category.dart';
 
 /// Database credentials — same Neon instance used by the web admin.
-const _neonHost     = 'ep-sparkling-dust-a7v4is48-pooler.ap-southeast-2.aws.neon.tech';
+const _neonHost =
+    'ep-sparkling-dust-a7v4is48-pooler.ap-southeast-2.aws.neon.tech';
 const _neonDatabase = 'neondb';
-const _neonUser     = 'neondb_owner';
+const _neonUser = 'neondb_owner';
 const _neonPassword = 'npg_tuKfs4nH0wZa';
 
 class WalloraAPI {
@@ -26,7 +27,10 @@ class WalloraAPI {
 
   // ── Wallpapers ─────────────────────────────────────────────────────────────
 
-  static Future<List<Wallpaper>> getWallpapers({bool forceRefresh = false, String? userId}) async {
+  static Future<List<Wallpaper>> getWallpapers({
+    bool forceRefresh = false,
+    String? userId,
+  }) async {
     const cacheKey = 'cache_wallpapers_all';
     final prefs = await SharedPreferences.getInstance();
 
@@ -35,7 +39,9 @@ class WalloraAPI {
       if (cached != null) {
         try {
           final List data = json.decode(cached);
-          final wallpapers = data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
+          final wallpapers = data
+              .map((e) => Wallpaper.fromJson(e as Map<String, dynamic>))
+              .toList();
           if (wallpapers.isNotEmpty) return wallpapers;
         } catch (_) {}
       }
@@ -47,27 +53,36 @@ class WalloraAPI {
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
           'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked '
-          'FROM wallpapers w ORDER BY w.timestamp DESC'
+          'FROM wallpapers w ORDER BY w.timestamp DESC',
         ),
         parameters: {'userId': userId ?? ''},
       );
       await conn.close();
 
       final wallpapers = _rowsToWallpapers(result);
-      await prefs.setString(cacheKey, json.encode(wallpapers.map(_wpToJson).toList()));
+      await prefs.setString(
+        cacheKey,
+        json.encode(wallpapers.map(_wpToJson).toList()),
+      );
       return wallpapers;
     } catch (e) {
       // Final fallback if fetch fails and we didn't return from cache already
       final cached = prefs.getString(cacheKey);
       if (cached != null) {
         final List data = json.decode(cached);
-        return data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
+        return data
+            .map((e) => Wallpaper.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       rethrow;
     }
   }
 
-  static Future<List<Wallpaper>> getWallpapersByCategory(String categoryId, {bool forceRefresh = false, String? userId}) async {
+  static Future<List<Wallpaper>> getWallpapersByCategory(
+    String categoryId, {
+    bool forceRefresh = false,
+    String? userId,
+  }) async {
     final cacheKey = 'cache_wallpapers_$categoryId';
     final prefs = await SharedPreferences.getInstance();
 
@@ -76,7 +91,9 @@ class WalloraAPI {
       if (cached != null) {
         try {
           final List data = json.decode(cached);
-          final wallpapers = data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
+          final wallpapers = data
+              .map((e) => Wallpaper.fromJson(e as Map<String, dynamic>))
+              .toList();
           if (wallpapers.isNotEmpty) return wallpapers;
         } catch (_) {}
       }
@@ -90,21 +107,23 @@ class WalloraAPI {
           'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked '
           'FROM wallpapers w WHERE w.category = @cat ORDER BY w.timestamp DESC',
         ),
-        parameters: {
-          'cat': categoryId,
-          'userId': userId ?? '',
-        },
+        parameters: {'cat': categoryId, 'userId': userId ?? ''},
       );
       await conn.close();
 
       final wallpapers = _rowsToWallpapers(result);
-      await prefs.setString(cacheKey, json.encode(wallpapers.map(_wpToJson).toList()));
+      await prefs.setString(
+        cacheKey,
+        json.encode(wallpapers.map(_wpToJson).toList()),
+      );
       return wallpapers;
     } catch (e) {
       final cached = prefs.getString(cacheKey);
       if (cached != null) {
         final List data = json.decode(cached);
-        return data.map((e) => Wallpaper.fromJson(e as Map<String, dynamic>)).toList();
+        return data
+            .map((e) => Wallpaper.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       rethrow;
     }
@@ -112,31 +131,76 @@ class WalloraAPI {
 
   // ── Liking ─────────────────────────────────────────────────────────────────
 
-  static Future<void> toggleLike(String wallpaperId, String userId, bool isCurrentlyLiked) async {
+  static Future<void> toggleLike(
+    String wallpaperId,
+    String userId,
+    bool isCurrentlyLiked,
+  ) async {
     try {
       final conn = await _connect();
       if (isCurrentlyLiked) {
         // Unlike
         await conn.execute(
-          Sql.named('DELETE FROM wallpaper_likes WHERE wallpaper_id = @wpId AND user_id = @uId'),
+          Sql.named(
+            'DELETE FROM wallpaper_likes WHERE wallpaper_id = @wpId AND user_id = @uId',
+          ),
           parameters: {'wpId': wallpaperId, 'uId': userId},
         );
         await conn.execute(
-          Sql.named('UPDATE wallpapers SET likes_count = GREATEST(0, likes_count - 1) WHERE id = @wpId'),
+          Sql.named(
+            'UPDATE wallpapers SET likes_count = GREATEST(0, likes_count - 1) WHERE id = @wpId',
+          ),
           parameters: {'wpId': wallpaperId},
         );
       } else {
         // Like
         await conn.execute(
-          Sql.named('INSERT INTO wallpaper_likes (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING'),
+          Sql.named(
+            'INSERT INTO wallpaper_likes (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING',
+          ),
           parameters: {'wpId': wallpaperId, 'uId': userId},
         );
         await conn.execute(
-          Sql.named('UPDATE wallpapers SET likes_count = likes_count + 1 WHERE id = @wpId'),
+          Sql.named(
+            'UPDATE wallpapers SET likes_count = likes_count + 1 WHERE id = @wpId',
+          ),
           parameters: {'wpId': wallpaperId},
         );
       }
       await conn.close();
+
+      // Update local cache
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs
+          .getKeys()
+          .where((k) => k.startsWith('cache_wallpapers_'))
+          .toList();
+      for (final key in keys) {
+        final cached = prefs.getString(key);
+        if (cached != null) {
+          try {
+            final List data = json.decode(cached);
+            bool changed = false;
+            for (var i = 0; i < data.length; i++) {
+              if (data[i]['id'] == wallpaperId) {
+                data[i]['is_liked'] = !isCurrentlyLiked;
+                int count = (data[i]['likes_count'] ?? 0) as int;
+                if (isCurrentlyLiked) {
+                  count = count > 0 ? count - 1 : 0;
+                } else {
+                  count += 1;
+                }
+                data[i]['likes_count'] = count;
+                changed = true;
+                break; // A wallpaper won't appear twice in the same list
+              }
+            }
+            if (changed) {
+              await prefs.setString(key, json.encode(data));
+            }
+          } catch (_) {}
+        }
+      }
     } catch (e) {
       print('[WalloraAPI] toggleLike Error: $e');
       rethrow;
@@ -145,7 +209,9 @@ class WalloraAPI {
 
   // ── Categories ─────────────────────────────────────────────────────────────
 
-  static Future<List<Category>> getCategories({bool forceRefresh = false}) async {
+  static Future<List<Category>> getCategories({
+    bool forceRefresh = false,
+  }) async {
     const cacheKey = 'cache_categories';
     final prefs = await SharedPreferences.getInstance();
 
@@ -154,7 +220,9 @@ class WalloraAPI {
       if (cached != null) {
         try {
           final List data = json.decode(cached);
-          final categories = data.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
+          final categories = data
+              .map((e) => Category.fromJson(e as Map<String, dynamic>))
+              .toList();
           if (categories.isNotEmpty) return categories;
         } catch (_) {}
       }
@@ -169,26 +237,36 @@ class WalloraAPI {
 
       final categories = result.map((row) {
         return Category(
-          id:        row[0].toString(),
-          title:     row[1].toString(),
+          id: row[0].toString(),
+          title: row[1].toString(),
           thumbnail: row[2].toString(),
-          details:   row[3]?.toString() ?? '',
+          details: row[3]?.toString() ?? '',
         );
       }).toList();
 
       await prefs.setString(
         cacheKey,
-        json.encode(categories.map((c) => {
-          'id': c.id, 'title': c.title,
-          'thumbnail': c.thumbnail, 'details': c.details,
-        }).toList()),
+        json.encode(
+          categories
+              .map(
+                (c) => {
+                  'id': c.id,
+                  'title': c.title,
+                  'thumbnail': c.thumbnail,
+                  'details': c.details,
+                },
+              )
+              .toList(),
+        ),
       );
       return categories;
     } catch (e) {
       final cached = prefs.getString(cacheKey);
       if (cached != null) {
         final List data = json.decode(cached);
-        return data.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
+        return data
+            .map((e) => Category.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       rethrow;
     }
@@ -199,14 +277,14 @@ class WalloraAPI {
   static List<Wallpaper> _rowsToWallpapers(List<ResultRow> rows) {
     return rows.map((row) {
       return Wallpaper(
-        id:          row[0].toString(),
-        category:    row[1].toString(),
-        title:       row[2].toString(),
-        image:       row[3].toString(),
-        download:    row[4].toString(),
-        timestamp:   row[5]?.toString() ?? '',
-        likesCount:  row[6] as int? ?? 0,
-        isLiked:     row[7] as bool? ?? false,
+        id: row[0].toString(),
+        category: row[1].toString(),
+        title: row[2].toString(),
+        image: row[3].toString(),
+        download: row[4].toString(),
+        timestamp: row[5]?.toString() ?? '',
+        likesCount: row[6] as int? ?? 0,
+        isLiked: row[7] as bool? ?? false,
       );
     }).toList();
   }

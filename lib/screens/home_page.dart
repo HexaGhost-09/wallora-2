@@ -13,13 +13,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  
+
   final List<Widget> _screens = [
     const HomeTab(),
     const CategoriesTab(),
     const SettingsPage(),
   ];
-
 
   @override
   Widget build(BuildContext context) {

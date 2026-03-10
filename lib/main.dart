@@ -11,10 +11,10 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize ThemeService
   await ThemeService.instance.init();
-  
+
   // Initialize Notifications and Background Worker
   await NotificationService.instance.init();
   await BackgroundService.instance.init();
@@ -34,8 +34,6 @@ void main() async {
 
   runApp(const WalloraApp());
 }
-
-
 
 class WalloraApp extends StatefulWidget {
   const WalloraApp({super.key});
@@ -61,60 +59,62 @@ class _WalloraAppState extends State<WalloraApp> {
           title: 'Wallora',
           debugShowCheckedModeBanner: false,
           themeMode: ThemeService.instance.themeMode,
-          
-          // --- LIGHT THEME (Pure White) ---
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-        textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1), // Indigo/Modern vibe
-          primary: const Color(0xFF6366F1),
-          onPrimary: Colors.white,
-          surface: Colors.white,
-          onSurface: const Color(0xFF1E293B),
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          titleTextStyle: GoogleFonts.outfit(
-            color: const Color(0xFF1E293B),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-          iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
-        ),
-      ),
 
-      // --- DARK THEME (Sleek Deep Black/Blue) ---
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A), // Modern deep navy
-        textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF818CF8),
-          brightness: Brightness.dark,
-          primary: const Color(0xFF818CF8),
-          onPrimary: const Color(0xFF0F172A),
-          surface: const Color(0xFF1E293B),
-          onSurface: Colors.white,
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          titleTextStyle: GoogleFonts.outfit(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          // --- LIGHT THEME (Pure White) ---
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+            textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF6366F1), // Indigo/Modern vibe
+              primary: const Color(0xFF6366F1),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: const Color(0xFF1E293B),
+            ),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              titleTextStyle: GoogleFonts.outfit(
+                color: const Color(0xFF1E293B),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+            ),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
-        ),
-      ),
-      home: const HomePage(),
+
+          // --- DARK THEME (Sleek Deep Black/Blue) ---
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: const Color(
+              0xFF0F172A,
+            ), // Modern deep navy
+            textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF818CF8),
+              brightness: Brightness.dark,
+              primary: const Color(0xFF818CF8),
+              onPrimary: const Color(0xFF0F172A),
+              surface: const Color(0xFF1E293B),
+              onSurface: Colors.white,
+            ),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              titleTextStyle: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              iconTheme: const IconThemeData(color: Colors.white),
+            ),
+          ),
+          home: const HomePage(),
         );
       },
     );

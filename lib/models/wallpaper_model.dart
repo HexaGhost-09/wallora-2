@@ -6,8 +6,8 @@ class Wallpaper {
   final String download;
   final String timestamp;
 
-  final int likesCount;
-  final bool isLiked;
+  int likesCount;
+  bool isLiked;
 
   Wallpaper({
     required this.id,

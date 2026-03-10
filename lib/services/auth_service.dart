@@ -69,13 +69,21 @@ class AuthService {
 
     _currentUser = UserModel.fromJson(data['user'] as Map<String, dynamic>);
     await _saveUserToPrefs(data);
+
+    // Clear cache
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs
+        .getKeys()
+        .where((k) => k.startsWith('cache_wallpapers_'))
+        .toList();
+    for (final key in keys) {
+      await prefs.remove(key);
+    }
+
     return true;
   }
 
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     final data = await _post('/sign-in/email', {
       'email': email,
       'password': password,
@@ -88,6 +96,17 @@ class AuthService {
 
     _currentUser = UserModel.fromJson(userData);
     await _saveUserToPrefs(data);
+
+    // Clear wallpaper cache so we fetch new likes for this user
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs
+        .getKeys()
+        .where((k) => k.startsWith('cache_wallpapers_'))
+        .toList();
+    for (final key in keys) {
+      await prefs.remove(key);
+    }
+
     return true;
   }
 
@@ -110,13 +129,23 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_data');
     await prefs.remove('auth_token');
+
+    // Clear wallpaper cache on sign out
+    final keys = prefs
+        .getKeys()
+        .where((k) => k.startsWith('cache_wallpapers_'))
+        .toList();
+    for (final key in keys) {
+      await prefs.remove(key);
+    }
   }
 
   Future<void> _saveUserToPrefs(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     final userData = data['user'];
     // Better Auth returns token at root level: { token, user, redirect }
-    final token = data['token']?.toString() ??
+    final token =
+        data['token']?.toString() ??
         (data['session']?['token'])?.toString() ??
         '';
 
@@ -130,7 +159,8 @@ class AuthService {
     if (userData != null) {
       try {
         _currentUser = UserModel.fromJson(
-            json.decode(userData) as Map<String, dynamic>);
+          json.decode(userData) as Map<String, dynamic>,
+        );
         return true;
       } catch (_) {
         await prefs.remove('user_data');
