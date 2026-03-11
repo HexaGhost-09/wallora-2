@@ -1,37 +1,31 @@
-import 'package:workmanager/workmanager.dart';
-import 'update_service.dart';
-import 'notification_service.dart';
+import 'package:flutter/foundation.dart';
+import 'background_service_impl.dart';
 
 const updateTaskString = "checkUpdatesTask";
 
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    if (task == updateTaskString) {
-      await NotificationService.instance.init();
-      // Force a check and show the notification if there's an update
-      await UpdateService.instance.checkForUpdates(
-        force: true,
-        showNotification: true,
-      );
-    }
-    return Future.value(true);
-  });
-}
 
 class BackgroundService {
   static final BackgroundService instance = BackgroundService._();
   BackgroundService._();
 
   Future<void> init() async {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+    // workmanager only works on Android & iOS.
+    // On desktop (Windows, Linux, macOS) and Web we skip background tasks.
+    if (kIsWeb) return;
 
-    // Register a periodic task to run approximately once a day
-    await Workmanager().registerPeriodicTask(
-      "1",
-      updateTaskString,
-      frequency: const Duration(hours: 24),
-      constraints: Constraints(networkType: NetworkType.connected),
-    );
+    final isMobile = defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+
+    if (!isMobile) return;
+
+    await _initWorkmanager();
+  }
+
+  Future<void> _initWorkmanager() async {
+    try {
+      await BackgroundServiceImpl.run();
+    } catch (e) {
+      debugPrint('[BackgroundService] workmanager init error: $e');
+    }
   }
 }

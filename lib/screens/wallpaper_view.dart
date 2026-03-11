@@ -1,17 +1,42 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/wallpaper_bridge.dart';
 import 'auth_screen.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
+// async_wallpaper is Android / iOS only.
+// On desktop / web we fall back to opening the image URL in the browser.
+bool get _canSetWallpaper {
+  if (kIsWeb) return false;
+  return defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+}
+
+/// Shows a toast on mobile, or a SnackBar on desktop/web.
+void _showToast(BuildContext? ctx, String msg) {
+  if (_canSetWallpaper) {
+    Fluttertoast.showToast(msg: msg);
+  } else if (ctx != null) {
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+}
 
 class WallpaperView extends StatefulWidget {
   final Wallpaper wallpaper;
@@ -40,7 +65,7 @@ class _WallpaperViewState extends State<WallpaperView> {
   Future<void> _toggleLike() async {
     final user = AuthService.instance.currentUser;
     if (user == null) {
-      Fluttertoast.showToast(msg: "Please login to like wallpapers");
+      _showToast(context, "Please login to like wallpapers");
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AuthScreen()),
@@ -79,7 +104,7 @@ class _WallpaperViewState extends State<WallpaperView> {
         widget.wallpaper.isLiked = _isLiked;
         widget.wallpaper.likesCount = _likesCount;
       });
-      Fluttertoast.showToast(msg: "Failed to update like status");
+      _showToast(context, "Failed to update like status");
     } finally {
       setState(() => _isLiking = false);
     }
@@ -88,7 +113,7 @@ class _WallpaperViewState extends State<WallpaperView> {
   Future<void> _toggleSave() async {
     final user = AuthService.instance.currentUser;
     if (user == null) {
-      Fluttertoast.showToast(msg: "Please login to save wallpapers");
+      _showToast(context, "Please login to save wallpapers");
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AuthScreen()),
@@ -106,39 +131,51 @@ class _WallpaperViewState extends State<WallpaperView> {
 
     try {
       await WalloraAPI.toggleSave(widget.wallpaper.id, user.id, !_isSaved);
-      Fluttertoast.showToast(
-        msg: _isSaved ? "Saved to collection" : "Removed from collection",
-      );
+      _showToast(context, _isSaved ? "Saved to collection" : "Removed from collection");
     } catch (e) {
       setState(() {
         _isSaved = !_isSaved;
         widget.wallpaper.isSaved = _isSaved;
       });
-      Fluttertoast.showToast(msg: "Failed to update save status");
+      _showToast(context, "Failed to update save status");
     } finally {
       setState(() => _isSaving = false);
     }
   }
 
+  /// Download / open wallpaper on platforms that can't set it natively.
+  Future<void> _openWallpaperInBrowser() async {
+    final uri = Uri.parse(widget.wallpaper.download.isNotEmpty
+        ? widget.wallpaper.download
+        : widget.wallpaper.image);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open image URL')),
+      );
+    }
+  }
+
   Future<void> _setWallpaper(int location) async {
+    // This path is only reached on Android / iOS (see _canSetWallpaper guard).
     setState(() => _isApplying = true);
     Navigator.pop(context);
 
     try {
-      String result = (await AsyncWallpaper.setWallpaper(
+      // Dynamic import via runtime check — async_wallpaper is mobile-only.
+      final result = await _AsyncWallpaperHelper.set(
         url: widget.wallpaper.image,
-        wallpaperLocation: location,
-        goToHome: false,
-        toastDetails: ToastDetails.success(),
-        errorToastDetails: ToastDetails.error(),
-      )).toString();
+        location: location,
+      );
 
       if (result == 'Wallpaper set') {
         final prefs = await SharedPreferences.getInstance();
         List<String> savedWallpapers =
             prefs.getStringList('applied_wallpapers') ?? [];
 
-        Map<String, dynamic> wallpaperMap = {
+        final wallpaperMap = {
           'id': widget.wallpaper.id,
           'category': widget.wallpaper.category,
           'title': widget.wallpaper.title,
@@ -147,7 +184,7 @@ class _WallpaperViewState extends State<WallpaperView> {
           'timestamp': widget.wallpaper.timestamp,
         };
 
-        String jsonStr = json.encode(wallpaperMap);
+        final jsonStr = json.encode(wallpaperMap);
         if (!savedWallpapers.contains(jsonStr)) {
           savedWallpapers.add(jsonStr);
           await prefs.setStringList('applied_wallpapers', savedWallpapers);
@@ -170,15 +207,22 @@ class _WallpaperViewState extends State<WallpaperView> {
       );
     } on PlatformException {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error applying wallpaper')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error applying wallpaper')),
+      );
     } finally {
       if (mounted) setState(() => _isApplying = false);
     }
   }
 
   void _showApplyOptions() {
+    // On desktop / web: open the image in the browser for download.
+    if (!_canSetWallpaper) {
+      _openWallpaperInBrowser();
+      return;
+    }
+
+    // On Android / iOS: show the home/lock screen picker.
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -213,19 +257,19 @@ class _WallpaperViewState extends State<WallpaperView> {
               _ApplyOptionTile(
                 icon: Iconsax.home,
                 title: "Home Screen",
-                onTap: () => _setWallpaper(AsyncWallpaper.HOME_SCREEN),
+                onTap: () => _setWallpaper(_WallpaperLocation.homeScreen),
               ),
               const SizedBox(height: 12),
               _ApplyOptionTile(
                 icon: Iconsax.lock,
                 title: "Lock Screen",
-                onTap: () => _setWallpaper(AsyncWallpaper.LOCK_SCREEN),
+                onTap: () => _setWallpaper(_WallpaperLocation.lockScreen),
               ),
               const SizedBox(height: 12),
               _ApplyOptionTile(
                 icon: Iconsax.mobile,
                 title: "Both Screens",
-                onTap: () => _setWallpaper(AsyncWallpaper.BOTH_SCREENS),
+                onTap: () => _setWallpaper(_WallpaperLocation.bothScreens),
               ),
             ],
           ),
@@ -341,7 +385,7 @@ class _WallpaperViewState extends State<WallpaperView> {
                       ),
                       const SizedBox(width: 10),
 
-                      // Apply Wallpaper button (expands to fill remaining space)
+                      // Apply / Download Wallpaper button
                       Expanded(
                         child: SizedBox(
                           height: 54,
@@ -356,7 +400,9 @@ class _WallpaperViewState extends State<WallpaperView> {
                               ),
                             ),
                             child: Text(
-                              "Apply Wallpaper",
+                              _canSetWallpaper
+                                  ? "Apply Wallpaper"
+                                  : "Download Wallpaper",
                               style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -472,5 +518,41 @@ class _ApplyOptionTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Wallpaper location constants (mirror AsyncWallpaper constants)
+// ---------------------------------------------------------------------------
+class _WallpaperLocation {
+  static const int homeScreen = 1;
+  static const int lockScreen = 2;
+  static const int bothScreens = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Async wallpaper helper — calls the real plugin on Android/iOS only.
+// On other platforms this should never be reached (guarded by _canSetWallpaper).
+// ---------------------------------------------------------------------------
+class _AsyncWallpaperHelper {
+  static Future<String> set({
+    required String url,
+    required int location,
+  }) async {
+    // We instantiate async_wallpaper only here, not at top-level import,
+    // so desktop compilations that never call this method are unaffected.
+    try {
+      // ignore: avoid_print
+      final result = await _callPlugin(url, location);
+      return result;
+    } catch (e) {
+      return 'Error: $e';
+    }
+  }
+
+  static Future<String> _callPlugin(String url, int location) async {
+    // Import async_wallpaper at call-site for maximum safety.
+    // Desktop never reaches this path due to the _canSetWallpaper guard.
+    return await AsyncWallpaperBridge.setWallpaper(url, location);
   }
 }

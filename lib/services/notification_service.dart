@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,7 +11,7 @@ void notificationTapBackground(
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      print('Could not launch \$uri: \$e');
+      debugPrint('Could not launch $uri: $e');
     }
   }
 }
@@ -19,58 +20,106 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
   NotificationService._();
 
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Whether this platform supports local notifications.
+  bool get _isSupported {
+    if (kIsWeb) return false;
+    // flutter_local_notifications supports:
+    //   Android, iOS, macOS, Linux
+    // It does NOT support Windows or Web.
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.linux;
+  }
+
   Future<void> init() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    if (!_isSupported) return;
+
+    // Android settings
+    const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+    // macOS / iOS settings
+    const DarwinInitializationSettings darwinSettings =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
-    await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+    // Linux settings
+    const LinuxInitializationSettings linuxSettings =
+        LinuxInitializationSettings(defaultActionName: 'Open');
+
+    final InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
+      linux: linuxSettings,
+    );
+
+    await _plugin.initialize(
+      initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.payload != null) {
           final uri = Uri.parse(response.payload!);
           try {
             await launchUrl(uri, mode: LaunchMode.externalApplication);
           } catch (e) {
-            print('Could not launch \$uri: \$e');
+            debugPrint('Could not launch $uri: $e');
           }
         }
       },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
-    // Request permissions for Android 13+
-    _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
+    // Request permissions on Android 13+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      _plugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    }
   }
 
   Future<void> showUpdateNotification(String version, String url) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-          'update_channel_id',
-          'App Updates',
-          channelDescription: 'Notifications for new app updates',
-          importance: Importance.high,
-          priority: Priority.high,
-        );
+    if (!_isSupported) return;
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
+    // Android notification details
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'update_channel_id',
+      'App Updates',
+      channelDescription: 'Notifications for new app updates',
+      importance: Importance.high,
+      priority: Priority.high,
     );
 
-    await _flutterLocalNotificationsPlugin.show(
-      0, // Notification ID
+    // Darwin (iOS/macOS) notification details
+    const DarwinNotificationDetails darwinDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    // Linux notification details
+    const LinuxNotificationDetails linuxDetails = LinuxNotificationDetails();
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
+      linux: linuxDetails,
+    );
+
+    await _plugin.show(
+      0,
       'Update Available!',
       'Wallora v$version is available to download.',
-      platformChannelSpecifics,
+      details,
       payload: url,
     );
   }

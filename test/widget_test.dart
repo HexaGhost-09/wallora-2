@@ -8,7 +8,7 @@ import 'package:wallora/main.dart';
 void main() {
   testWidgets('Wallora app smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const WalloraApp());
+    await tester.pumpWidget(const WalloraApp(isFirstTime: false));
 
     // Wait for any async operations to complete
     await tester.pumpAndSettle();
@@ -31,7 +31,7 @@ void main() {
   });
 
   testWidgets('Test surprise me button exists', (WidgetTester tester) async {
-    await tester.pumpWidget(const WalloraApp());
+    await tester.pumpWidget(const WalloraApp(isFirstTime: false));
     await tester.pumpAndSettle();
 
     // Verify "Surprise Me" FAB exists
@@ -40,7 +40,7 @@ void main() {
   });
 
   testWidgets('Test navigation elements', (WidgetTester tester) async {
-    await tester.pumpWidget(const WalloraApp());
+    await tester.pumpWidget(const WalloraApp(isFirstTime: false));
     await tester.pumpAndSettle();
 
     // Test search button tap (should not crash)

@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/user_model.dart';
@@ -16,37 +17,33 @@ class AuthService {
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
-  /// Low-level POST using dart:io to guarantee the Origin header is sent.
+  /// Cross-platform POST using the `http` package (works on all platforms
+  /// including Web, unlike dart:io HttpClient).
   Future<Map<String, dynamic>?> _post(
     String path,
     Map<String, dynamic> body,
   ) async {
-    final client = HttpClient();
     try {
       final uri = Uri.parse('$authBaseUrl$path');
-      final request = await client.postUrl(uri);
-      request.headers.set('Content-Type', 'application/json; charset=utf-8');
-      request.headers.set('Origin', _origin);
-      request.headers.set('Accept', 'application/json');
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Origin': _origin,
+          'Accept': 'application/json',
+        },
+        body: json.encode(body),
+      );
 
-      final encoded = json.encode(body);
-      request.contentLength = utf8.encode(encoded).length;
-      request.write(encoded);
-
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
-
-      print('[AuthService] $path → ${response.statusCode}: $responseBody');
+      debugPrint('[AuthService] $path → ${response.statusCode}: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return json.decode(responseBody) as Map<String, dynamic>;
+        return json.decode(response.body) as Map<String, dynamic>;
       }
       return null;
     } catch (e) {
-      print('[AuthService] POST $path exception: $e');
+      debugPrint('[AuthService] POST $path exception: $e');
       return null;
-    } finally {
-      client.close();
     }
   }
 
@@ -119,7 +116,7 @@ class AuthService {
       }
       return false;
     } catch (e) {
-      print('[AuthService] OAuth SignIn Error: $e');
+      debugPrint('[AuthService] OAuth SignIn Error: $e');
       return false;
     }
   }
