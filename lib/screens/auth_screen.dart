@@ -19,8 +19,9 @@ class _AuthScreenState extends State<AuthScreen> {
   final _nameController = TextEditingController();
 
   Future<void> _submit() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty)
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       return;
+    }
     if (!_isLogin && _nameController.text.isEmpty) return;
 
     setState(() => _isLoading = true);
