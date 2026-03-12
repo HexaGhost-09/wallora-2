@@ -11,13 +11,13 @@ import 'package:async_wallpaper/async_wallpaper.dart';
 /// Location constants: 1 = home, 2 = lock, 3 = both.
 class AsyncWallpaperBridge {
   static Future<String> setWallpaper(String url, int location) async {
-    final result = await AsyncWallpaper.setWallpaper(
+    final request = WallpaperRequest(
       url: url,
       wallpaperLocation: location,
       goToHome: false,
-      toastDetails: ToastDetails.success(),
-      errorToastDetails: ToastDetails.error(),
     );
+
+    final result = await AsyncWallpaper.setWallpaper(request);
     return result.toString();
   }
 }
