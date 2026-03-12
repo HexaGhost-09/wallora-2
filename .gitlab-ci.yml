@@ -12,12 +12,12 @@ build_apk:
   before_script:
     - flutter pub get
   script:
-    - # Extract version from pubspec.yaml (e.g., 1.5.6)
-    - VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | sed 's/ //g' | cut -d'+' -f1)
+    # Extract version from pubspec.yaml (e.g., 1.5.6)
+    - VERSION=$(grep "^version:" pubspec.yaml | cut -d":" -f2 | sed "s/ //g" | cut -d"+" -f1)
     - echo "APP_VERSION=$VERSION" >> build.env
     - echo "Building Wallora version $VERSION"
     - flutter build apk --release --verbose
-    - # Rename APK as per GitHub Action requirements
+    # Rename APK as per GitHub Action requirements
     - mv $APK_PATH/app-release.apk $APK_PATH/Wallora-$VERSION.apk
   artifacts:
     paths:
