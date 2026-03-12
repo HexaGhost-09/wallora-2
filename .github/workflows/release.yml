@@ -11,9 +11,7 @@ permissions:
 jobs:
   build:
     name: Build APK
-    runs-on: ubuntu-24.04-arm
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -23,23 +21,13 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses || true
+          cache: 'gradle'
 
       - name: Setup Flutter
-        run: |
-          git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter
-          echo "$HOME/flutter/bin" >> $GITHUB_PATH
-          echo "$HOME/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
-
-      - name: Verify Flutter
-        run: |
-          flutter config --android-sdk $ANDROID_HOME
-          flutter --version
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
 
       - name: Get dependencies
         run: flutter pub get
