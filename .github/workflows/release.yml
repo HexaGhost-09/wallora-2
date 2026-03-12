@@ -31,8 +31,10 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Clean and Install Dependencies
+        run: |
+          flutter clean
+          flutter pub get
 
       - name: Extract Version
         id: extract_version
@@ -40,7 +42,7 @@ jobs:
           VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | xargs | cut -d'+' -f1)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Build APK
+      - name: Build APK (Parallel)
         run: flutter build apk --release --verbose
 
       - name: Rename APK

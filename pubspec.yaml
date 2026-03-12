@@ -17,7 +17,7 @@ dependencies:
   async_wallpaper:
     path: packages/async_wallpaper
   url_launcher: ^6.3.2
-  package_info_plus: ^9.0.0
+  package_info_plus: ^8.0.0
   fluttertoast: 8.2.14
   shared_preferences: ^2.2.3
   flutter_local_notifications: ^21.0.0
