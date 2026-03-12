@@ -22,7 +22,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.4' # Matching sdk: ^3.10.4 in pubspec.yaml
+          flutter-version: '3.13.0' # Updated to support project Dart SDK requirements
           channel: 'stable'
 
       - name: Get dependencies
