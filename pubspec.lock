@@ -28,10 +28,9 @@ packages:
   async_wallpaper:
     dependency: "direct main"
     description:
-      name: async_wallpaper
-      sha256: "377062765eb90a3601379bfe20a3672720d577c204f08142aefc40d33f7f483f"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/async_wallpaper"
+      relative: true
+    source: path
     version: "2.1.0"
   blurhash:
     dependency: "direct main"

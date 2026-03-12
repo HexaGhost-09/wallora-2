@@ -1,0 +1,24 @@
+name: async_wallpaper_example
+description: Demonstrates how to use the async_wallpaper plugin.
+
+publish_to: "none"
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  async_wallpaper:
+    path: ../
+  cupertino_icons: ^1.0.2
+  file: ^6.1.4
+  flutter:
+    sdk: flutter
+  flutter_cache_manager: ^3.1.2
+
+dev_dependencies:
+  flutter_lints: ^2.0.1
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
