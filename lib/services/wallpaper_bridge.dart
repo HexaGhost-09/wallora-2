@@ -6,18 +6,23 @@
 // only actually CALLS the plugin on Android/iOS.
 
 import 'package:async_wallpaper/async_wallpaper.dart';
+import 'package:flutter/services.dart';
 
 /// Calls AsyncWallpaper.setWallpaper with the given URL and location.
 /// Location constants: 1 = home, 2 = lock, 3 = both.
 class AsyncWallpaperBridge {
   static Future<String> setWallpaper(String url, int location) async {
-    final result = await AsyncWallpaper.setWallpaper(
-      url: url,
-      wallpaperLocation: location,
-      goToHome: false,
-      toastDetails: ToastDetails.success(),
-      errorToastDetails: ToastDetails.error(),
-    );
-    return result.toString();
+    try {
+      final bool result = await AsyncWallpaper.setWallpaper(
+        url: url,
+        wallpaperLocation: location,
+        goToHome: false,
+        toastDetails: ToastDetails.success(),
+        errorToastDetails: ToastDetails.error(),
+      );
+      return result ? 'Wallpaper set' : 'Failed to set wallpaper';
+    } on PlatformException catch (e) {
+      return 'Error: ${e.message}';
+    }
   }
 }
