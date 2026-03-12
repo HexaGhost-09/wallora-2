@@ -116,9 +116,9 @@ class NotificationService {
     );
 
     await _plugin.show(
-      0,
-      'Update Available!',
-      'Wallora v$version is available to download.',
+      id: 0,
+      title: 'Update Available!',
+      body: 'Wallora v$version is available to download.',
       notificationDetails: details,
       payload: url,
     );
