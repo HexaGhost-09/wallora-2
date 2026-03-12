@@ -24,6 +24,12 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
       - name: Setup Flutter
         run: |
           git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter
@@ -31,7 +37,9 @@ jobs:
           echo "$HOME/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
 
       - name: Verify Flutter
-        run: flutter --version
+        run: |
+          flutter config --android-sdk $ANDROID_HOME
+          flutter --version
 
       - name: Get dependencies
         run: flutter pub get
