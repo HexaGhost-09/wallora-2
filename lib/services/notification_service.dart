@@ -62,7 +62,7 @@ class NotificationService {
     );
 
     await _plugin.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.payload != null) {
           final uri = Uri.parse(response.payload!);
@@ -119,7 +119,7 @@ class NotificationService {
       0,
       'Update Available!',
       'Wallora v$version is available to download.',
-      details,
+      notificationDetails: details,
       payload: url,
     );
   }
