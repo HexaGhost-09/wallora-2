@@ -377,7 +377,7 @@ class _WallpaperViewState extends State<WallpaperView> {
                       _ActionButton(
                         onPressed: _toggleSave,
                         icon: _isSaved
-                            ? Iconsax.archive_tick5
+                            ? Iconsax.archive_tick
                             : Iconsax.archive_add,
                         iconColor:
                             _isSaved ? Colors.greenAccent : Colors.white,
@@ -454,22 +454,25 @@ class _ActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white24),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 22),
-            if (label != null) ...[
-              const SizedBox(width: 6),
-              Text(
-                label!,
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: iconColor, size: 24),
+              if (label != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  label!,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
