@@ -1,6 +1,9 @@
 name: Generate Screenshots
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
