@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
+import '../services/responsive_helper.dart';
 import 'category_wallpapers_screen.dart';
 
 class CategoriesTab extends StatefulWidget {
@@ -38,83 +39,88 @@ class _CategoriesTabState extends State<CategoriesTab> {
     final theme = Theme.of(context);
     final textColor = theme.colorScheme.onSurface;
 
-    return Column(
-      children: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Column(
+          children: [
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Categories',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w900,
-                        color: textColor,
-                        fontSize: 32,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    Text(
-                      'Browse by style',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: textColor.withOpacity(0.6),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Categories',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w900,
+                            color: textColor,
+                            fontSize: 32,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Text(
+                          'Browse by style',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: textColor.withOpacity(0.6),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: Theme.of(context).colorScheme.primary,
-            child: FutureBuilder<List<Category>>(
-              future: _categoriesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: const [
-                      SizedBox(height: 200),
-                      Center(child: Text('No categories found')),
-                    ],
-                  );
-                }
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: Theme.of(context).colorScheme.primary,
+                child: FutureBuilder<List<Category>>(
+                  future: _categoriesFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 200),
+                          Center(child: Text('No categories found')),
+                        ],
+                      );
+                    }
 
-                final categories = snapshot.data!;
+                    final categories = snapshot.data!;
 
-                return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(24, 5, 24, 100),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: categories.length,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    return _CategoryCard(category: category, index: index);
+                    return GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(24, 5, 24, 100),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.85,
+                      ),
+                      itemCount: categories.length,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final category = categories[index];
+                        return _CategoryCard(category: category, index: index);
+                      },
+                    );
                   },
-                );
-              },
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

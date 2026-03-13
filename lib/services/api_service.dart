@@ -131,6 +131,32 @@ class WalloraAPI {
     }
   }
 
+  static Future<List<Wallpaper>> searchWallpapers(
+    String query, {
+    String? userId,
+  }) async {
+    try {
+      final conn = await _connect();
+      final result = await conn.execute(
+        Sql.named(
+          'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
+          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
+          'FROM wallpapers w WHERE LOWER(w.title) LIKE LOWER(@query) OR LOWER(w.category) LIKE LOWER(@query) ORDER BY w.timestamp DESC',
+        ),
+        parameters: {
+          'query': '%$query%',
+          'userId': userId ?? '',
+        },
+      );
+      await conn.close();
+      return _rowsToWallpapers(result);
+    } catch (e) {
+      print('[WalloraAPI] searchWallpapers Error: $e');
+      return [];
+    }
+  }
+
   // ── Liking ─────────────────────────────────────────────────────────────────
 
   static Future<void> toggleLike(

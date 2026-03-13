@@ -28,27 +28,32 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const HomeHeader(),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: Theme.of(context).colorScheme.primary,
-            child: SingleChildScrollView(
-              physics:
-                  const AlwaysScrollableScrollPhysics(), // Ensure it's always scrollable for RefreshIndicator
-              child: Column(
-                children: [
-                  WallpaperTray(key: _trayKey),
-                  // Space for floating nav bar
-                  const SizedBox(height: 100),
-                ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Column(
+          children: [
+            const HomeHeader(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: Theme.of(context).colorScheme.primary,
+                child: SingleChildScrollView(
+                  physics:
+                      const AlwaysScrollableScrollPhysics(), // Ensure it's always scrollable for RefreshIndicator
+                  child: Column(
+                    children: [
+                      WallpaperTray(key: _trayKey),
+                      // Space for floating nav bar
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import '../models/category.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/responsive_helper.dart';
 import '../widgets/wallpaper_card.dart';
 
 class CategoryWallpapersScreen extends StatefulWidget {
@@ -79,7 +80,7 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
 
             return MasonryGridView.count(
               padding: const EdgeInsets.all(24),
-              crossAxisCount: 2,
+              crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               itemCount: wallpapers.length,

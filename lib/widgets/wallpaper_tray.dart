@@ -3,6 +3,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/responsive_helper.dart';
 import 'wallpaper_card.dart';
 
 class WallpaperTray extends StatefulWidget {
@@ -53,7 +54,7 @@ class _WallpaperTrayState extends State<WallpaperTray> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: MasonryGridView.count(
-            crossAxisCount: 2,
+            crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
             itemCount: wallpapers.length,
