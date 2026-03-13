@@ -157,10 +157,10 @@ jobs:
           
           # Windows
           # Get the EXE installer
-          cp artifacts/windows-release/*.exe "Wallora-v${VERSION}-setup.exe"
+          cp artifacts/windows-release/Wallora-v*-setup.exe "Wallora-v${VERSION}-setup.exe"
           # Also package the raw exe folder for portable use
-          cd artifacts/windows-release && zip -r "../../windows-release.zip" . -x "*.exe" && cd ../..
-          cp "windows-release.zip" "Wallora-windows-v${VERSION}.zip"
+          cd artifacts/windows-release && zip -r "../../Wallora-windows-v${VERSION}.zip" . -x "Wallora-v*-setup.exe" && cd ../..
+          cp "Wallora-windows-v${VERSION}.zip" "windows-release.zip"
           
           # Linux
           cp artifacts/linux-release/Wallora-linux-v${VERSION}.tar.gz .
