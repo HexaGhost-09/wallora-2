@@ -14,7 +14,22 @@ permissions:
   contents: write
 
 jobs:
+  get_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.get_version.outputs.version_tag }}
+    steps:
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "version_tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "version_tag=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
   build_linux:
+    needs: get_version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +58,7 @@ jobs:
           path: linux-release.zip
 
   build_android:
+    needs: get_version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,13 +73,14 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --release
       - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk Wallora-v${{ github.event.inputs.version }}.apk
+        run: mv build/app/outputs/flutter-apk/app-release.apk Wallora-${{ needs.get_version.outputs.version_tag }}.apk
       - uses: actions/upload-artifact@v4
         with:
           name: android-release
-          path: Wallora-v${{ github.event.inputs.version }}.apk
+          path: Wallora-${{ needs.get_version.outputs.version_tag }}.apk
 
   build_windows:
+    needs: get_version
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -86,6 +103,7 @@ jobs:
           path: windows-release.zip
 
   build_macos_ios:
+    needs: get_version
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -124,7 +142,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [build_linux, build_android, build_windows, build_macos_ios]
+    needs: [get_version, build_linux, build_android, build_windows, build_macos_ios]
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -133,8 +151,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*/*
-          tag_name: v${{ github.event.inputs.version }}
-          name: Release v${{ github.event.inputs.version }}
-          body: "New release v${{ github.event.inputs.version }}"
+          tag_name: ${{ needs.get_version.outputs.version_tag }}
+          name: Release ${{ needs.get_version.outputs.version_tag }}
+          body: "New release ${{ needs.get_version.outputs.version_tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
