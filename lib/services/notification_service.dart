@@ -83,8 +83,8 @@ class NotificationService {
     if (Platform.isWindows) {
       await localNotifier.setup(
         appName: 'Wallora',
-        // The shortcutId only works if the app had a shortcut installed with it.
-        shortcutId: 'com.hexaghost.wallora',
+        // The shortcutPolicy only works on Windows
+        shortcutPolicy: ShortcutPolicy.requireCreate,
       );
     }
 
@@ -108,7 +108,15 @@ class NotificationService {
           LocalNotificationAction(text: 'Download'),
         ],
       );
-      notification.onTap = () async {
+      notification.onClick = () async {
+        final uri = Uri.parse(url);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (e) {
+          debugPrint('Could not launch $uri: $e');
+        }
+      };
+      notification.onClickAction = (index) async {
         final uri = Uri.parse(url);
         try {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
