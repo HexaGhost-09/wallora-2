@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:local_notifier/local_notifier.dart';
+import 'dart:io';
 
 @pragma('vm:entry-point')
 void notificationTapBackground(
@@ -32,7 +34,8 @@ class NotificationService {
     return defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS ||
-        defaultTargetPlatform == TargetPlatform.linux;
+        defaultTargetPlatform == TargetPlatform.linux ||
+        (defaultTargetPlatform == TargetPlatform.windows && !kIsWeb);
   }
 
   Future<void> init() async {
@@ -76,6 +79,15 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
+    // Initialize local_notifier for Windows
+    if (Platform.isWindows) {
+      await localNotifier.setup(
+        appName: 'Wallora',
+        // The shortcutId only works if the app had a shortcut installed with it.
+        shortcutId: 'com.hexaghost.wallora',
+      );
+    }
+
     // Request permissions on Android 13+
     if (defaultTargetPlatform == TargetPlatform.android) {
       _plugin
@@ -87,6 +99,26 @@ class NotificationService {
 
   Future<void> showUpdateNotification(String version, String url) async {
     if (!_isSupported) return;
+
+    if (Platform.isWindows) {
+      LocalNotification notification = LocalNotification(
+        title: 'Update Available!',
+        body: 'Wallora v$version is available to download.',
+        actions: [
+          LocalNotificationAction(text: 'Download'),
+        ],
+      );
+      notification.onTap = () async {
+        final uri = Uri.parse(url);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (e) {
+          debugPrint('Could not launch $uri: $e');
+        }
+      };
+      await notification.show();
+      return;
+    }
 
     // Android notification details
     const AndroidNotificationDetails androidDetails =

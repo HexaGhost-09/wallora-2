@@ -2,7 +2,7 @@ name: wallora
 description: "Wallpapers App"
 publish_to: 'none'
 
-version: 1.6.0+1
+version: 1.6.1+1
 
 environment:
   sdk: ^3.10.4
@@ -21,6 +21,7 @@ dependencies:
   fluttertoast: 8.2.14
   shared_preferences: ^2.2.3
   flutter_local_notifications: ^21.0.0
+  local_notifier: ^0.1.6
   workmanager: ^0.9.0+3
   flutter_animate: ^4.5.2
   google_fonts: ^8.0.2
