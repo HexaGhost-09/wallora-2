@@ -1,0 +1,34 @@
+image: ghcr.io/cirruslabs/flutter:stable
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Build and Upload APK
+          size: 2x
+          script:
+            - apt-get update
+            - apt-get install -y openjdk-17-jdk curl
+            - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+            - export PATH=$JAVA_HOME/bin:$PATH
+            - java -version
+
+            - flutter doctor -v
+            - flutter clean
+            - flutter pub get
+
+            - |
+              VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | xargs | cut -d'+' -f1)
+              echo "Version: $VERSION"
+
+              flutter build apk --release
+
+              mv build/app/outputs/flutter-apk/app-release.apk \
+              build/app/outputs/flutter-apk/Wallora-${VERSION}.apk
+
+              echo "Uploading APK to Bitbucket Downloads..."
+
+              curl -X POST \
+              -u "$BB_USERNAME:$BB_API_TOKEN" \
+              https://api.bitbucket.org/2.0/repositories/$BITBUCKET_REPO_OWNER/$BITBUCKET_REPO_SLUG/downloads \
+              -F files=@build/app/outputs/flutter-apk/Wallora-${VERSION}.apk
