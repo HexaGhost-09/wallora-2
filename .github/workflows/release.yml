@@ -46,11 +46,15 @@ jobs:
       - run: flutter config --enable-windows-desktop
       - run: flutter pub get
       - run: flutter build windows --release
+      - name: Create MSIX Installer
+        run: flutter pub run msix:create --version ${{ needs.get_version.outputs.version }}.0
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: build/windows/runner/Release
+          path: |
+            build/windows/x64/runner/Release/*.msix
+            build/windows/x64/runner/Release
 
   build_linux:
     needs: get_version
@@ -66,11 +70,16 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
       - run: flutter build linux --release
+      - name: Create Linux Bundle
+        run: |
+          VERSION=${{ needs.get_version.outputs.version }}
+          cd build/linux/x64/release/bundle
+          tar -czf "../../../../Wallora-linux-v${VERSION}.tar.gz" .
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-release
-          path: build/linux/x64/release/bundle
+          path: Wallora-linux-v*.tar.gz
 
   build_macos:
     needs: get_version
@@ -82,14 +91,44 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
       - run: flutter build macos --release
+      - name: Create DMG
+        run: |
+          VERSION=${{ needs.get_version.outputs.version }}
+          cd build/macos/Build/Products/Release
+          hdiutil create -format UDZO -srcfolder "wallora.app" "Wallora-v${VERSION}.dmg"
+          mv "Wallora-v${VERSION}.dmg" ../../../../../
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-release
-          path: build/macos/Build/Products/Release
+          path: |
+            build/macos/Build/Products/Release/wallora.app
+            Wallora-v*.dmg
+
+  build_ios:
+    needs: get_version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Create IPA
+        run: |
+          VERSION=${{ needs.get_version.outputs.version }}
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "Wallora-v${VERSION}.ipa" Payload
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: "Wallora-v*.ipa"
 
   release:
-    needs: [get_version, build_android, build_windows, build_linux, build_macos]
+    needs: [get_version, build_android, build_windows, build_linux, build_macos, build_ios]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -99,10 +138,29 @@ jobs:
       - name: Package builds
         run: |
           VERSION=${{ needs.get_version.outputs.version }}
-          mv artifacts/android-release/app-release.apk Wallora-v${VERSION}.apk
-          cd artifacts/windows-release && zip -r ../../Wallora-windows-v${VERSION}.zip . && cd ../..
-          cd artifacts/linux-release && zip -r ../../Wallora-linux-v${VERSION}.zip . && cd ../..
-          cd artifacts/macos-release && zip -r ../../Wallora-macos-v${VERSION}.zip . && cd ../..
+          
+          # Android
+          cp artifacts/android-release/app-release.apk "Wallora-v${VERSION}.apk"
+          
+          # iOS
+          cp artifacts/ios-release/Wallora-v${VERSION}.ipa "Wallora-v${VERSION}.ipa"
+          zip -j "ios-release.zip" "Wallora-v${VERSION}.ipa"
+          
+          # Windows
+          # Get the MSIX installer
+          cp artifacts/windows-release/*.msix "Wallora-v${VERSION}-setup.msix"
+          # Also package the raw exe folder for portable use
+          cd artifacts/windows-release && zip -r "../../windows-release.zip" . -x "*.msix" && cd ../..
+          cp "windows-release.zip" "Wallora-windows-v${VERSION}.zip"
+          
+          # Linux
+          cp artifacts/linux-release/Wallora-linux-v${VERSION}.tar.gz .
+          cp "Wallora-linux-v${VERSION}.tar.gz" "linux-release.tar.gz"
+          
+          # macOS
+          cp artifacts/macos-release/Wallora-v${VERSION}.dmg .
+          cd artifacts/macos-release && zip -r "../../macos-release.zip" wallora.app && cd ../..
+          cp "macos-release.zip" "Wallora-macos-v${VERSION}.zip"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -110,5 +168,9 @@ jobs:
           tag_name: v${{ needs.get_version.outputs.version }}
           name: Release v${{ needs.get_version.outputs.version }}
           files: |
-            Wallora-v*.apk
-            Wallora-*-v*.zip
+            *.apk
+            *.ipa
+            *.dmg
+            *.msix
+            *.zip
+            *.tar.gz
