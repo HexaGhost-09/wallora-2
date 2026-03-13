@@ -74,7 +74,7 @@ jobs:
         run: |
           VERSION=${{ needs.get_version.outputs.version }}
           cd build/linux/x64/release/bundle
-          tar -czf "../../../../Wallora-linux-v${VERSION}.tar.gz" .
+          tar -czf "$GITHUB_WORKSPACE/Wallora-linux-v${VERSION}.tar.gz" .
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -96,7 +96,7 @@ jobs:
           VERSION=${{ needs.get_version.outputs.version }}
           cd build/macos/Build/Products/Release
           hdiutil create -format UDZO -srcfolder "wallora.app" "Wallora-v${VERSION}.dmg"
-          mv "Wallora-v${VERSION}.dmg" ../../../../../
+          mv "Wallora-v${VERSION}.dmg" "$GITHUB_WORKSPACE/"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -120,12 +120,12 @@ jobs:
           VERSION=${{ needs.get_version.outputs.version }}
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r "Wallora-v${VERSION}.ipa" Payload
+          zip -r "$GITHUB_WORKSPACE/Wallora-v${VERSION}.ipa" Payload
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-release
-          path: "Wallora-v*.ipa"
+          path: Wallora-v*.ipa
 
   release:
     needs: [get_version, build_android, build_windows, build_linux, build_macos, build_ios]
