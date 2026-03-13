@@ -96,14 +96,12 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
       # iOS build steps
-      - name: Build IPA
-        run: flutter build ipa --release --export-options-plist=ios/exportOptions.plist
-      - name: Archive IPA
+      - name: Build unsigned iOS app
+        run: flutter build ios --release --no-codesign
+      - name: Archive unsigned iOS app
         run: |
-          mkdir -p build/ios/ipa
-          mv build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/ipa/
-          cd build/ios/ipa
-          zip -r ../../../ios-release.zip .
+          cd build/ios/iphoneos/
+          zip -r ../../../ios-release.zip Runner.app
           cd ../../../../
       - uses: actions/upload-artifact@v4
         with:
