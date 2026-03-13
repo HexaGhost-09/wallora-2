@@ -37,17 +37,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  msix: ^3.16.7
-
-msix_config:
-  display_name: Wallora
-  publisher_display_name: Wallora
-  publisher: CN=Wallora
-  identity_name: com.wallora.app
-  msix_version: 1.5.8.0
-  logo_path: assets/icon/icon.png
-  capabilities: internetClient, location, microphone, webcam
-  install_certificate: false # GitHub Actions will handle signing or we use unsigned for testing
 
 flutter:
   uses-material-design: true

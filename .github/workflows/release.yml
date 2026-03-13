@@ -46,14 +46,15 @@ jobs:
       - run: flutter config --enable-windows-desktop
       - run: flutter pub get
       - run: flutter build windows --release
-      - name: Create MSIX Installer
-        run: flutter pub run msix:create --version ${{ needs.get_version.outputs.version }}.0
+      - name: Build Installer (Inno Setup)
+        run: |
+          iscc /DAppVersion=${{ needs.get_version.outputs.version }} windows/installer.iss
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
           path: |
-            build/windows/x64/runner/Release/*.msix
+            Wallora-v*-setup.exe
             build/windows/x64/runner/Release
 
   build_linux:
@@ -155,10 +156,10 @@ jobs:
           zip -j "ios-release.zip" "Wallora-v${VERSION}.ipa"
           
           # Windows
-          # Get the MSIX installer
-          cp artifacts/windows-release/*.msix "Wallora-v${VERSION}-setup.msix"
+          # Get the EXE installer
+          cp artifacts/windows-release/*.exe "Wallora-v${VERSION}-setup.exe"
           # Also package the raw exe folder for portable use
-          cd artifacts/windows-release && zip -r "../../windows-release.zip" . -x "*.msix" && cd ../..
+          cd artifacts/windows-release && zip -r "../../windows-release.zip" . -x "*.exe" && cd ../..
           cp "windows-release.zip" "Wallora-windows-v${VERSION}.zip"
           
           # Linux
@@ -179,6 +180,6 @@ jobs:
             *.apk
             *.ipa
             *.dmg
-            *.msix
+            *.exe
             *.zip
             *.tar.gz
