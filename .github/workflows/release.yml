@@ -102,7 +102,9 @@ jobs:
       - run: flutter build windows --release
       - name: Archive Release
         run: |
-          Compress-Archive -Path build\windows\runner\Release\* -DestinationPath windows-release.zip
+          if (Test-Path "build\windows\runner\Release") {
+            Compress-Archive -Path build\windows\runner\Release\* -DestinationPath windows-release.zip
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
