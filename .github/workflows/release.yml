@@ -12,8 +12,6 @@ jobs:
 build:
 name: Build APK
 runs-on: ubuntu-latest
-env:
-FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 ```
 steps:
@@ -33,12 +31,10 @@ steps:
       channel: stable
       cache: true
 
-  - name: Clean and Install Dependencies
-    run: |
-      flutter clean
-      flutter pub get
+  - name: Install dependencies
+    run: flutter pub get
 
-  - name: Extract Version
+  - name: Extract version
     run: |
       VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | xargs | cut -d'+' -f1)
       echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -57,4 +53,3 @@ steps:
       name: v${{ env.VERSION }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
