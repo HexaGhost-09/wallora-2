@@ -27,4 +27,4 @@ jobs:
           flutter config --enable-web
 
       - name: Run integration tests on Chrome
-        run: flutter test --platform chrome integration_test/app_test.dart
+        run: flutter test -d chrome integration_test/app_test.dart
