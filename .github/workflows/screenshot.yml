@@ -21,14 +21,10 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Install dependencies and enable web
+        run: |
+          flutter pub get
+          flutter config --enable-web
 
-      - name: Run integration tests
-        run: flutter test integration_test
-
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: build/app/outputs/flutter-apk/
+      - name: Run integration tests on Chrome
+        run: flutter test --platform chrome integration_test/app_test.dart
