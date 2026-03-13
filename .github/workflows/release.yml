@@ -91,19 +91,23 @@ jobs:
           channel: 'stable'
       - run: flutter pub get
       - run: flutter build macos --release
-      - name: Create DMG
+      - name: Package macOS
         run: |
           VERSION=${{ needs.get_version.outputs.version }}
           cd build/macos/Build/Products/Release
-          hdiutil create -format UDZO -srcfolder "wallora.app" "Wallora-v${VERSION}.dmg"
+          # Create DMG (use wildcard for .app)
+          hdiutil create -format UDZO -srcfolder *.app "Wallora-v${VERSION}.dmg"
+          # Create Zip (use wildcard for .app)
+          zip -r "Wallora-macos-v${VERSION}.zip" *.app
           mv "Wallora-v${VERSION}.dmg" "$GITHUB_WORKSPACE/"
+          mv "Wallora-macos-v${VERSION}.zip" "$GITHUB_WORKSPACE/"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-release
           path: |
-            build/macos/Build/Products/Release/wallora.app
             Wallora-v*.dmg
+            Wallora-macos-v*.zip
 
   build_ios:
     needs: get_version
@@ -121,11 +125,15 @@ jobs:
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r "$GITHUB_WORKSPACE/Wallora-v${VERSION}.ipa" Payload
+          # Also the zip requested
+          zip -j "$GITHUB_WORKSPACE/ios-release.zip" "$GITHUB_WORKSPACE/Wallora-v${VERSION}.ipa"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-release
-          path: Wallora-v*.ipa
+          path: |
+            Wallora-v*.ipa
+            ios-release.zip
 
   release:
     needs: [get_version, build_android, build_windows, build_linux, build_macos, build_ios]
@@ -159,8 +167,8 @@ jobs:
           
           # macOS
           cp artifacts/macos-release/Wallora-v${VERSION}.dmg .
-          cd artifacts/macos-release && zip -r "../../macos-release.zip" wallora.app && cd ../..
-          cp "macos-release.zip" "Wallora-macos-v${VERSION}.zip"
+          cp artifacts/macos-release/Wallora-macos-v${VERSION}.zip .
+          cp "Wallora-macos-v${VERSION}.zip" "macos-release.zip"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
