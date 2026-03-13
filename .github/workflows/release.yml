@@ -1,61 +1,60 @@
 name: Build and Release APK
 
 on:
-  push:
-    branches:
-      - main
+push:
+branches:
+- main
 
 permissions:
-  contents: write
+contents: write
 
 jobs:
-  build:
-    name: Build APK
-    runs-on: ubuntu-latest
+build:
+name: Build APK
+runs-on: ubuntu-latest
+env:
+FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+```
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v5
+
+  - name: Setup Java
+    uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: '21'
+      cache: gradle
+
+  - name: Setup Flutter
+    uses: subosito/flutter-action@v2
+    with:
+      channel: stable
+      cache: true
+
+  - name: Clean and Install Dependencies
+    run: |
+      flutter clean
+      flutter pub get
+
+  - name: Extract Version
+    run: |
+      VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | xargs | cut -d'+' -f1)
+      echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+  - name: Build APK
+    run: flutter build apk --release
+
+  - name: Rename APK
+    run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Wallora-${{ env.VERSION }}.apk
+
+  - name: Create Release
+    uses: softprops/action-gh-release@v2
+    with:
+      files: build/app/outputs/flutter-apk/Wallora-${{ env.VERSION }}.apk
+      tag_name: v${{ env.VERSION }}
+      name: v${{ env.VERSION }}
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-          cache: 'gradle'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Clean and Install Dependencies
-        run: |
-          flutter clean
-          flutter pub get
-
-      - name: Extract Version
-        id: extract_version
-        run: |
-          VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | xargs | cut -d'+' -f1)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Build APK (Parallel)
-        run: flutter build apk --release --verbose
-
-      - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Wallora-${{ env.VERSION }}.apk
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2.5.0
-        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
-        with:
-          files: build/app/outputs/flutter-apk/Wallora-${{ env.VERSION }}.apk
-          tag_name: v${{ env.VERSION }}
-          name: v${{ env.VERSION }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
