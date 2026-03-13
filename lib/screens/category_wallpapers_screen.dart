@@ -78,20 +78,25 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
 
             final wallpapers = snapshot.data!;
 
-            return MasonryGridView.count(
-              padding: const EdgeInsets.all(24),
-              crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              itemCount: wallpapers.length,
-              physics:
-                  const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
-              itemBuilder: (context, index) {
-                return WallpaperCard(
-                  wallpaper: wallpapers[index],
-                  index: index,
-                );
-              },
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: MasonryGridView.count(
+                  padding: const EdgeInsets.all(24),
+                  crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  itemCount: wallpapers.length,
+                  physics:
+                      const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
+                  itemBuilder: (context, index) {
+                    return WallpaperCard(
+                      wallpaper: wallpapers[index],
+                      index: index,
+                    );
+                  },
+                ),
+              ),
             );
           },
         ),
