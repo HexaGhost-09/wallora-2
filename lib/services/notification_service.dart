@@ -39,61 +39,76 @@ class NotificationService {
   }
 
   Future<void> init() async {
-    if (!_isSupported) return;
+    if (kIsWeb) return;
 
-    // Android settings
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    // macOS / iOS settings
-    const DarwinInitializationSettings darwinSettings =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-
-    // Linux settings
-    const LinuxInitializationSettings linuxSettings =
-        LinuxInitializationSettings(defaultActionName: 'Open');
-
-    final InitializationSettings initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: darwinSettings,
-      macOS: darwinSettings,
-      linux: linuxSettings,
-    );
-
-    await _plugin.initialize(
-      settings: initSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) async {
-        if (response.payload != null) {
-          final uri = Uri.parse(response.payload!);
-          try {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          } catch (e) {
-            debugPrint('Could not launch $uri: $e');
-          }
-        }
-      },
-      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-    );
-
-    // Initialize local_notifier for Windows
-    if (Platform.isWindows) {
-      await localNotifier.setup(
-        appName: 'Wallora',
-        // The shortcutPolicy only works on Windows
-        shortcutPolicy: ShortcutPolicy.requireCreate,
-      );
+    // 1. Setup local_notifier for Windows
+    if (defaultTargetPlatform == TargetPlatform.windows) {
+      try {
+        await localNotifier.setup(
+          appName: 'Wallora',
+          shortcutPolicy: ShortcutPolicy.requireCreate,
+        );
+      } catch (e) {
+        debugPrint('[NotificationService] local_notifier setup error: $e');
+      }
     }
 
-    // Request permissions on Android 13+
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      _plugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
+    // 2. Setup flutter_local_notifications for Android, iOS, macOS, Linux
+    final isPluginSupported = defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.linux;
+
+    if (isPluginSupported) {
+      try {
+        // Android settings
+        const AndroidInitializationSettings androidSettings =
+            AndroidInitializationSettings('@mipmap/ic_launcher');
+
+        // macOS / iOS settings
+        const DarwinInitializationSettings darwinSettings =
+            DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+
+        // Linux settings
+        const LinuxInitializationSettings linuxSettings =
+            LinuxInitializationSettings(defaultActionName: 'Open');
+
+        final InitializationSettings initSettings = InitializationSettings(
+          android: androidSettings,
+          iOS: darwinSettings,
+          macOS: darwinSettings,
+          linux: linuxSettings,
+        );
+
+        await _plugin.initialize(
+          settings: initSettings,
+          onDidReceiveNotificationResponse: (NotificationResponse response) async {
+            if (response.payload != null) {
+              final uri = Uri.parse(response.payload!);
+              try {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (e) {
+                debugPrint('Could not launch $uri: $e');
+              }
+            }
+          },
+          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+        );
+
+        // Request permissions on Android 13+
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          _plugin
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>()
+              ?.requestNotificationsPermission();
+        }
+      } catch (e) {
+        debugPrint('[NotificationService] _plugin.initialize error: $e');
+      }
     }
   }
 

@@ -19,8 +19,7 @@ import 'auth_screen.dart';
 // On desktop / web we fall back to opening the image URL in the browser.
 bool get _canSetWallpaper {
   if (kIsWeb) return false;
-  return defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS;
+  return defaultTargetPlatform == TargetPlatform.android;
 }
 
 /// Shows a toast on mobile, or a SnackBar on desktop/web.
