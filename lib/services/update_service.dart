@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:flutter/foundation.dart';
 import 'notification_service.dart';
 
 class UpdateInfo {
@@ -117,5 +119,26 @@ class UpdateService {
 
   Future<void> initialize() async {
     await checkForUpdates(showNotification: true);
+    _checkShorebirdUpdates();
+  }
+
+  /// Check for Shorebird OTA (Code Push) updates
+  void _checkShorebirdUpdates() async {
+    // Shorebird only supports Android and iOS
+    if (kIsWeb) return;
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) return;
+
+    final updater = ShorebirdUpdater();
+    try {
+      final status = await updater.checkForUpdate();
+      if (status == UpdateStatus.updateAvailable) {
+        // Update is available, start downloading in the background.
+        // It will be applied on the next full restart of the app.
+        await updater.update();
+      }
+    } catch (e) {
+      // Background update check failed, ignore silently for now.
+    }
   }
 }

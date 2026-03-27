@@ -2,7 +2,7 @@ name: wallora
 description: "Wallpapers App"
 publish_to: 'none'
 
-version: 1.6.2
+version: 1.6.3
 
 environment:
   sdk: ^3.10.4
@@ -30,6 +30,7 @@ dependencies:
   iconsax: ^0.0.8
   blurhash: ^1.2.0
   postgres: ^3.5.9
+  shorebird_code_push: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -43,6 +44,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/icon.png
+    - shorebird.yaml
 
 flutter_launcher_icons:
   android: true

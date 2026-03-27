@@ -1,0 +1,6 @@
+# Shorebird application configuration
+# See https://docs.shorebird.dev/shorebird-yaml for more information.
+
+# This is a temporary placeholder ID. 
+# PLEASE RUN 'shorebird init' to generate your project's unique app_id.
+app_id: YOUR_SHOREBIRD_APP_ID
