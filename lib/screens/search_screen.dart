@@ -126,7 +126,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   itemCount: _results.length,
                                   itemBuilder: (context, index) {
                                     return WallpaperCard(
-                                      wallpaper: _results[index],
+                                      wallpapers: _results,
                                       index: index,
                                     );
                                   },

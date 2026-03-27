@@ -61,7 +61,7 @@ class _WallpaperTrayState extends State<WallpaperTray> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              return WallpaperCard(wallpaper: wallpapers[index], index: index);
+              return WallpaperCard(wallpapers: wallpapers, index: index);
             },
           ),
         );

@@ -38,14 +38,23 @@ void _showToast(BuildContext? ctx, String msg) {
 }
 
 class WallpaperView extends StatefulWidget {
-  final Wallpaper wallpaper;
-  const WallpaperView({super.key, required this.wallpaper});
+  final List<Wallpaper> wallpapers;
+  final int initialIndex;
+
+  const WallpaperView({
+    super.key,
+    required this.wallpapers,
+    required this.initialIndex,
+  });
 
   @override
   State<WallpaperView> createState() => _WallpaperViewState();
 }
 
 class _WallpaperViewState extends State<WallpaperView> {
+  late PageController _pageController;
+  late int _currentIndex;
+
   bool _isApplying = false;
   late int _likesCount;
   late bool _isLiked;
@@ -53,12 +62,33 @@ class _WallpaperViewState extends State<WallpaperView> {
   bool _isLiking = false;
   bool _isSaving = false;
 
+  Wallpaper get _currentWP => widget.wallpapers[_currentIndex];
+
   @override
   void initState() {
     super.initState();
-    _likesCount = widget.wallpaper.likesCount;
-    _isLiked = widget.wallpaper.isLiked;
-    _isSaved = widget.wallpaper.isSaved;
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+    _loadWallpaperState();
+  }
+
+  void _loadWallpaperState() {
+    _likesCount = _currentWP.likesCount;
+    _isLiked = _currentWP.isLiked;
+    _isSaved = _currentWP.isSaved;
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+      _loadWallpaperState();
+    });
   }
 
   Future<void> _toggleLike() async {
@@ -84,12 +114,12 @@ class _WallpaperViewState extends State<WallpaperView> {
         _likesCount++;
         _isLiked = true;
       }
-      widget.wallpaper.isLiked = _isLiked;
-      widget.wallpaper.likesCount = _likesCount;
+      _currentWP.isLiked = _isLiked;
+      _currentWP.likesCount = _likesCount;
     });
 
     try {
-      await WalloraAPI.toggleLike(widget.wallpaper.id, user.id, !_isLiked);
+      await WalloraAPI.toggleLike(_currentWP.id, user.id, !_isLiked);
     } catch (e) {
       // Revert on error
       setState(() {
@@ -100,8 +130,8 @@ class _WallpaperViewState extends State<WallpaperView> {
           _likesCount++;
           _isLiked = true;
         }
-        widget.wallpaper.isLiked = _isLiked;
-        widget.wallpaper.likesCount = _likesCount;
+        _currentWP.isLiked = _isLiked;
+        _currentWP.likesCount = _likesCount;
       });
       _showToast(context, "Failed to update like status");
     } finally {
@@ -125,16 +155,19 @@ class _WallpaperViewState extends State<WallpaperView> {
     setState(() {
       _isSaving = true;
       _isSaved = !_isSaved;
-      widget.wallpaper.isSaved = _isSaved;
+      _currentWP.isSaved = _isSaved;
     });
 
     try {
-      await WalloraAPI.toggleSave(widget.wallpaper.id, user.id, !_isSaved);
-      _showToast(context, _isSaved ? "Saved to collection" : "Removed from collection");
+      await WalloraAPI.toggleSave(_currentWP.id, user.id, !_isSaved);
+      _showToast(
+        context,
+        _isSaved ? "Saved to collection" : "Removed from collection",
+      );
     } catch (e) {
       setState(() {
         _isSaved = !_isSaved;
-        widget.wallpaper.isSaved = _isSaved;
+        _currentWP.isSaved = _isSaved;
       });
       _showToast(context, "Failed to update save status");
     } finally {
@@ -144,16 +177,16 @@ class _WallpaperViewState extends State<WallpaperView> {
 
   /// Download / open wallpaper on platforms that can't set it natively.
   Future<void> _openWallpaperInBrowser() async {
-    final uri = Uri.parse(widget.wallpaper.download.isNotEmpty
-        ? widget.wallpaper.download
-        : widget.wallpaper.image);
+    final uri = Uri.parse(
+      _currentWP.download.isNotEmpty ? _currentWP.download : _currentWP.image,
+    );
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open image URL')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open image URL')));
     }
   }
 
@@ -165,7 +198,7 @@ class _WallpaperViewState extends State<WallpaperView> {
     try {
       // Dynamic import via runtime check — async_wallpaper is mobile-only.
       final result = await _AsyncWallpaperHelper.set(
-        url: widget.wallpaper.image,
+        url: _currentWP.image,
         location: location,
       );
 
@@ -175,12 +208,12 @@ class _WallpaperViewState extends State<WallpaperView> {
             prefs.getStringList('applied_wallpapers') ?? [];
 
         final wallpaperMap = {
-          'id': widget.wallpaper.id,
-          'category': widget.wallpaper.category,
-          'title': widget.wallpaper.title,
-          'image': widget.wallpaper.image,
-          'download': widget.wallpaper.download,
-          'timestamp': widget.wallpaper.timestamp,
+          'id': _currentWP.id,
+          'category': _currentWP.category,
+          'title': _currentWP.title,
+          'image': _currentWP.image,
+          'download': _currentWP.download,
+          'timestamp': _currentWP.timestamp,
         };
 
         final jsonStr = json.encode(wallpaperMap);
@@ -206,9 +239,9 @@ class _WallpaperViewState extends State<WallpaperView> {
       );
     } on PlatformException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error applying wallpaper')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error applying wallpaper')));
     } finally {
       if (mounted) setState(() => _isApplying = false);
     }
@@ -295,15 +328,24 @@ class _WallpaperViewState extends State<WallpaperView> {
       ),
       body: Stack(
         children: [
-          // Full-screen wallpaper
-          SizedBox.expand(
-            child: Hero(
-              tag: widget.wallpaper.image,
-              child: CachedNetworkImage(
-                imageUrl: widget.wallpaper.image,
-                fit: BoxFit.cover,
-              ),
-            ),
+          // PageView for swiping
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            itemCount: widget.wallpapers.length,
+            itemBuilder: (context, index) {
+              final wallpaper = widget.wallpapers[index];
+              return Hero(
+                tag: wallpaper.image,
+                child: CachedNetworkImage(
+                  imageUrl: wallpaper.image,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white24),
+                  ),
+                ),
+              );
+            },
           ),
 
           // Applying overlay
@@ -338,11 +380,11 @@ class _WallpaperViewState extends State<WallpaperView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Wallpaper title
-                  if (widget.wallpaper.title.isNotEmpty)
+                  if (_currentWP.title.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Text(
-                        widget.wallpaper.title,
+                        _currentWP.title,
                         style: GoogleFonts.outfit(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -378,8 +420,7 @@ class _WallpaperViewState extends State<WallpaperView> {
                         icon: _isSaved
                             ? Iconsax.archive_tick
                             : Iconsax.archive_add,
-                        iconColor:
-                            _isSaved ? Colors.greenAccent : Colors.white,
+                        iconColor: _isSaved ? Colors.greenAccent : Colors.white,
                         label: null,
                       ),
                       const SizedBox(width: 10),

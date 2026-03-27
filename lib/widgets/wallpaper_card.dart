@@ -6,14 +6,16 @@ import '../models/wallpaper_model.dart';
 import '../screens/wallpaper_view.dart';
 
 class WallpaperCard extends StatelessWidget {
-  final Wallpaper wallpaper;
+  final List<Wallpaper> wallpapers;
   final int index;
 
   const WallpaperCard({
     super.key,
-    required this.wallpaper,
+    required this.wallpapers,
     required this.index,
   });
+
+  Wallpaper get wallpaper => wallpapers[index];
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,10 @@ class WallpaperCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => WallpaperView(wallpaper: wallpaper),
+                builder: (context) => WallpaperView(
+                  wallpapers: wallpapers,
+                  initialIndex: index,
+                ),
               ),
             );
           },

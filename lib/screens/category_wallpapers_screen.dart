@@ -91,7 +91,7 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
                       const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
                   itemBuilder: (context, index) {
                     return WallpaperCard(
-                      wallpaper: wallpapers[index],
+                      wallpapers: wallpapers,
                       index: index,
                     );
                   },

@@ -91,7 +91,7 @@ class _SavedWallpapersScreenState extends State<SavedWallpapersScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     return WallpaperCard(
-                      wallpaper: wallpapers[index],
+                      wallpapers: wallpapers,
                       index: index,
                     );
                   },
