@@ -1,0 +1,84 @@
+name: Shorebird OTA
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Shorebird command to run"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - release
+          - patch
+      platform:
+        description: "Target platform"
+        required: true
+        default: android
+        type: choice
+        options:
+          - android
+          - ios
+      release_version:
+        description: "Required for release (example: 1.0.0+1). Ignored for patch."
+        required: false
+        type: string
+
+jobs:
+  shorebird:
+    name: shorebird-${{ github.event.inputs.command }}-${{ github.event.inputs.platform }}
+    runs-on: ubuntu-latest
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate auth token
+        run: |
+          if [ -z "$SHOREBIRD_TOKEN" ]; then
+            echo "SHOREBIRD_TOKEN is missing. Add it in repo Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Setup Java
+        if: github.event.inputs.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.4'
+          channel: stable
+
+      - name: Install Shorebird
+        run: |
+          curl --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh -sSf | bash
+          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
+
+      - name: Shorebird doctor
+        run: shorebird doctor
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Shorebird release
+        if: github.event.inputs.command == 'release'
+        run: |
+          if [ -z "${{ github.event.inputs.release_version }}" ]; then
+            echo "release_version is required when command=release"
+            exit 1
+          fi
+
+          shorebird release ${{ github.event.inputs.platform }} \
+            --flutter-version=3.41.4 \
+            --build-name="${{ github.event.inputs.release_version%%+* }}" \
+            --build-number="${{ github.event.inputs.release_version##*+ }}"
+
+      - name: Build Shorebird patch
+        if: github.event.inputs.command == 'patch'
+        run: |
+          shorebird patch ${{ github.event.inputs.platform }} --flutter-version=3.41.4

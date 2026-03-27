@@ -83,6 +83,36 @@ flutter build ios
 
 ---
 
+
+## ☁️ OTA Updates with Shorebird
+
+Wallora now includes a GitHub Actions workflow for Shorebird so you can ship **real OTA patches** (Flutter code/assets) without waiting for Play Store / App Store review.
+
+### 1) Add required GitHub secret
+
+In your repository settings, add:
+
+- `SHOREBIRD_TOKEN`: token from `shorebird login:ci`
+
+### 2) Run OTA workflow
+
+Use **Actions → Shorebird OTA → Run workflow** and choose:
+
+- `command`: `release` (first Shorebird build) or `patch` (OTA fix)
+- `platform`: `android` or `ios`
+- `release_version`: required only for `release` (example: `1.2.0+45`)
+
+### 3) Typical flow
+
+1. Publish your first Shorebird-enabled release with `command=release`.
+2. Merge a hotfix to `main`.
+3. Trigger `command=patch` for the same platform.
+4. Existing users receive the patch on next app start (no store re-review for Dart/UI fixes).
+
+> Note: Native Android/iOS code changes still require a store release.
+
+---
+
 ## 🤝 Contributing
 
 Pull requests are welcome.
