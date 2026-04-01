@@ -2,7 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -27,8 +28,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      - uses: shorebirdtech/setup-shorebird@v1
       - run: flutter pub get
-      - run: flutter build apk --release
+      - name: Build and Release with Shorebird
+        run: shorebird release android --artifact apk --force
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
