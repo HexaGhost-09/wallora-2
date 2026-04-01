@@ -31,7 +31,7 @@ jobs:
       - uses: shorebirdtech/setup-shorebird@v1
       - run: flutter pub get
       - name: Build and Release with Shorebird
-        run: shorebird release android --artifact apk --force
+        run: shorebird release android --artifact apk
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
       - name: Upload artifact

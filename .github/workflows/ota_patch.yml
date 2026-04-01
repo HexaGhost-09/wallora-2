@@ -19,7 +19,7 @@ jobs:
       - uses: shorebirdtech/setup-shorebird@v1
       
       - name: Create Shorebird Android Patch
-        run: shorebird patch android --force
+        run: shorebird patch android
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
@@ -33,6 +33,6 @@ jobs:
       - uses: shorebirdtech/setup-shorebird@v1
       
       - name: Create Shorebird iOS Patch
-        run: shorebird patch ios --force
+        run: shorebird patch ios
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
