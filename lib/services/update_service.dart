@@ -125,14 +125,18 @@ class UpdateService {
   /// Check for Shorebird OTA (Code Push) updates
   void _checkShorebirdUpdates() async {
     // Shorebird only supports Android and iOS
-    if (kIsWeb) return;
+    if (kIsWeb) {
+      return;
+    }
     if (defaultTargetPlatform != TargetPlatform.android &&
-        defaultTargetPlatform != TargetPlatform.iOS) return;
+        defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
 
     final updater = ShorebirdUpdater();
     try {
       final status = await updater.checkForUpdate();
-      if (status == UpdateStatus.updateAvailable) {
+      if (status == UpdateStatus.outdated) {
         // Update is available, start downloading in the background.
         // It will be applied on the next full restart of the app.
         await updater.update();

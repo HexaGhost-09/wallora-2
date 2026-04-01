@@ -50,8 +50,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       body: Stack(
         children: [
@@ -64,7 +63,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
               ),
             ).animate().fade(duration: 1.seconds).scale(delay: 200.ms),
           ),
@@ -76,7 +75,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
               ),
             ).animate().fade(duration: 1.seconds).scale(delay: 400.ms),
           ),
@@ -103,7 +102,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               padding: const EdgeInsets.all(32),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                               ),
                               child: Icon(
                                 _pages[index]['icon'],
@@ -169,7 +168,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             decoration: BoxDecoration(
                               color: _currentPage == index
                                   ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),

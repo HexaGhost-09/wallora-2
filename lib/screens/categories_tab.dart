@@ -66,7 +66,7 @@ class _CategoriesTabState extends State<CategoriesTab> {
                         Text(
                           'Browse by style',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: textColor.withOpacity(0.6),
+                            color: textColor.withValues(alpha: 0.6),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -148,7 +148,7 @@ class _CategoryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -176,7 +176,7 @@ class _CategoryCard extends StatelessWidget {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withOpacity(0.8),
+                              Colors.black.withValues(alpha: 0.8),
                             ],
                           ),
                         ),
@@ -201,7 +201,7 @@ class _CategoryCard extends StatelessWidget {
                             Text(
                               category.details,
                               style: GoogleFonts.outfit(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
