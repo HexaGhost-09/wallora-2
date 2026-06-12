@@ -5,9 +5,10 @@ import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        // Aligns the Flutter view vertically with the window to allow edge-to-edge transparent navigation
+    override fun onPostResume() {
+        super.onPostResume()
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        super.onCreate(savedInstanceState)
+        window.navigationBarColor = 0 // for transparent nav bar
+        window.statusBarColor = 0 // for transparent status bar
     }
 }
