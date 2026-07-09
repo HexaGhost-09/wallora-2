@@ -56,7 +56,6 @@ class _SettingsPageState extends State<SettingsPage> {
       context,
       MaterialPageRoute(builder: (context) => const AuthScreen()),
     );
-
     if (result == true) {
       _checkAuth();
     }
@@ -74,15 +73,13 @@ class _SettingsPageState extends State<SettingsPage> {
       _updateInfo = info;
       _isLoading = false;
     });
-
     if (mounted) {
       if (info == null || !info.isAvailable) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text("You are up to date!"),
-            behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         );
@@ -108,242 +105,240 @@ class _SettingsPageState extends State<SettingsPage> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Settings",
-                  style: GoogleFonts.outfit(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1.5,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Settings",
+                    style: GoogleFonts.outfit(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Customize your experience",
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 8),
+                  Text(
+                    "Customize your experience",
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 32),
 
-                const SizedBox(height: 32),
-
-                // --- PROFILE SECTION ---
-                _SettingsSection(
-                  title: "Account",
-                  children: [
-                    _SettingsTile(
-                      icon: _isLoggedIn ? Iconsax.user_tick : Iconsax.user,
-                      title: _isLoggedIn ? (_userName ?? "User") : "Profile",
-                      subtitle: _isLoggedIn
-                          ? (_userEmail ?? "Logged in")
-                          : "Login to sync favorites",
-                      trailing: _isLoggedIn
-                          ? TextButton(
-                              onPressed: _handleLogout,
-                              child: const Text(
-                                "Logout",
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            )
-                          : ElevatedButton(
-                              onPressed: _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.colorScheme.primary,
-                                foregroundColor: Colors.white,
+                  // --- PROFILE SECTION ---
+                  _SettingsSection(
+                    title: "Account",
+                    children: [
+                      _SettingsTile(
+                        icon: _isLoggedIn ? Iconsax.user_tick : Iconsax.user,
+                        iconColor: _isLoggedIn ? Colors.green : null,
+                        title: _isLoggedIn ? (_userName ?? "User") : "Profile",
+                        subtitle: _isLoggedIn
+                            ? (_userEmail ?? "Logged in")
+                            : "Login to sync favorites",
+                        trailing: _isLoggedIn
+                            ? TextButton(
+                                onPressed: _handleLogout,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red.shade400,
+                                ),
+                                child: const Text("Logout"),
+                              )
+                            : Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 8,
                                 ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  "Login",
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
-                              child: const Text(
-                                "Login",
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                      onTap: _isLoggedIn ? null : _handleLogin,
-                    ),
-                    if (_isLoggedIn) ...[
-                      const Divider(height: 1, indent: 56),
-                      _SettingsTile(
-                        icon: Iconsax.archive_tick,
-                        title: "Saved Wallpapers",
-                        subtitle: "View your saved wallpapers collection",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SavedWallpapersScreen(),
-                            ),
-                          );
-                        },
+                        onTap: _isLoggedIn ? null : _handleLogin,
                       ),
+                      if (_isLoggedIn) ...[
+                        Container(height: 1, color: theme.colorScheme.onSurface.withOpacity(0.06)),
+                        _SettingsTile(
+                          icon: Iconsax.archive_tick,
+                          title: "Saved Wallpapers",
+                          subtitle: "View your saved collection",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SavedWallpapersScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ],
-                  ],
-                ).animate().fadeIn(duration: 400.ms).moveY(begin: 20, end: 0),
+                  ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOutCubic).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                _SettingsSection(
-                      title: "Appearance",
-                      children: [
-                        _SettingsTile(
-                          icon: Iconsax.colors_square,
-                          title: "Theme Mode",
-                          subtitle: "Switch between light and dark",
-                          trailing: DropdownButton<ThemeMode>(
-                            value: ThemeService.instance.themeMode,
-                            underline: const SizedBox(),
-                            borderRadius: BorderRadius.circular(16),
-                            style: GoogleFonts.outfit(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            onChanged: (ThemeMode? newMode) {
-                              if (newMode != null) {
-                                ThemeService.instance.setThemeMode(newMode);
-                                setState(() {});
-                              }
-                            },
-                            items: const [
-                              DropdownMenuItem(
-                                value: ThemeMode.light,
-                                child: Text("Light"),
-                              ),
-                              DropdownMenuItem(
-                                value: ThemeMode.dark,
-                                child: Text("Dark"),
-                              ),
-                              DropdownMenuItem(
-                                value: ThemeMode.system,
-                                child: Text("System"),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                    .animate(delay: 100.ms)
-                    .fadeIn(duration: 400.ms)
-                    .moveY(begin: 20, end: 0),
-
-                const SizedBox(height: 24),
-
-                _SettingsSection(
-                      title: "App Info",
-                      children: [
-                        _SettingsTile(
-                          icon: Iconsax.info_circle,
-                          title: "Version",
-                          subtitle: "v$_version",
-                          onTap: () {},
-                        ),
-                        _SettingsTile(
-                          icon: Iconsax.refresh,
-                          title: "Check for updates",
-                          subtitle: _isLoading ? "Checking..." : "Click to check",
-                          onTap: _isLoading ? null : _checkUpdate,
-                          trailing: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        if (_updateInfo != null && _updateInfo!.isAvailable)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.green.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Iconsax.radar,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          "New version ${_updateInfo!.version} available!",
-                                          style: GoogleFonts.outfit(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: _launchGitHubUrl,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
-                                        elevation: 0,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      child: const Text("Download Now"),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    )
-                    .animate(delay: 200.ms)
-                    .fadeIn(duration: 400.ms)
-                    .moveY(begin: 20, end: 0),
-
-                const SizedBox(height: 40),
-
-                Center(
-                  child: Column(
+                  // --- APPEARANCE SECTION ---
+                  _SettingsSection(
+                    title: "Appearance",
                     children: [
-                      Image.asset('assets/icon/icon.png', height: 40, width: 40),
-                      const SizedBox(height: 12),
-                      Text(
-                        "Wallora",
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          color: theme.colorScheme.onSurface.withOpacity(0.3),
+                      _SettingsTile(
+                        icon: Iconsax.colors_square,
+                        title: "Theme Mode",
+                        subtitle: "Switch between light and dark",
+                        trailing: SegmentedButton<ThemeMode>(
+                          segments: const [
+                            ButtonSegment(
+                              value: ThemeMode.light,
+                              label: Text('Light'),
+                              icon: Icon(Icons.light_mode, size: 16),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.system,
+                              label: Text('Auto'),
+                              icon: Icon(Icons.auto_mode, size: 16),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.dark,
+                              label: Text('Dark'),
+                              icon: Icon(Icons.dark_mode, size: 16),
+                            ),
+                          ],
+                          selected: {ThemeService.instance.themeMode},
+                          onSelectionChanged: (Set<ThemeMode> selected) {
+                            ThemeService.instance.setThemeMode(selected.first);
+                            setState(() {});
+                          },
+                          style: ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: WidgetStatePropertyAll(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                ).animate(delay: 300.ms).fadeIn(),
-                const SizedBox(height: 100),
-              ],
+                  ).animate(delay: 100.ms).fadeIn(duration: 400.ms, curve: Curves.easeOutCubic).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
+
+                  const SizedBox(height: 24),
+
+                  // --- APP INFO SECTION ---
+                  _SettingsSection(
+                    title: "App Info",
+                    children: [
+                      _SettingsTile(
+                        icon: Iconsax.info_circle,
+                        title: "Version",
+                        subtitle: "v$_version",
+                        onTap: () {},
+                      ),
+                      Container(height: 1, color: theme.colorScheme.onSurface.withOpacity(0.06)),
+                      _SettingsTile(
+                        icon: Iconsax.refresh,
+                        title: "Check for updates",
+                        subtitle: _isLoading ? "Checking..." : "Tap to check",
+                        onTap: _isLoading ? null : _checkUpdate,
+                        trailing: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : null,
+                      ),
+                      if (_updateInfo != null && _updateInfo!.isAvailable) ...[
+                        Container(height: 1, color: theme.colorScheme.onSurface.withOpacity(0.06)),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.green.withOpacity(0.15),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Iconsax.radar, color: Colors.green, size: 20),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        "New version ${_updateInfo!.version} available!",
+                                        style: GoogleFonts.outfit(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: _launchGitHubUrl,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: const Text("Download Now"),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ).animate(delay: 200.ms).fadeIn(duration: 400.ms, curve: Curves.easeOutCubic).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
+
+                  const SizedBox(height: 40),
+                  Center(
+                    child: Column(
+                      children: [
+                        Image.asset('assets/icon/icon.png', height: 36, width: 36),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Wallora",
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: theme.colorScheme.onSurface.withOpacity(0.25),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate(delay: 300.ms).fadeIn(),
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -358,6 +353,7 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -376,15 +372,15 @@ class _SettingsSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: isDark
+                ? const Color(0xFF141B2D)
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.04)
+                  : Colors.black.withOpacity(0.04),
+            ),
           ),
           child: Column(children: children),
         ),
@@ -395,6 +391,7 @@ class _SettingsSection extends StatelessWidget {
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
+  final Color? iconColor;
   final String title;
   final String subtitle;
   final Widget? trailing;
@@ -402,6 +399,7 @@ class _SettingsTile extends StatelessWidget {
 
   const _SettingsTile({
     required this.icon,
+    this.iconColor,
     required this.title,
     required this.subtitle,
     this.trailing,
@@ -410,18 +408,19 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ListTile(
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          color: (iconColor ?? theme.colorScheme.primary).withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           icon,
-          color: Theme.of(context).colorScheme.primary,
+          color: iconColor ?? theme.colorScheme.primary,
           size: 22,
         ),
       ),
@@ -434,12 +433,11 @@ class _SettingsTile extends StatelessWidget {
         style: GoogleFonts.outfit(
           fontWeight: FontWeight.w500,
           fontSize: 13,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          color: theme.colorScheme.onSurface.withOpacity(0.5),
         ),
       ),
-      trailing:
-          trailing ??
-          (onTap != null ? const Icon(Iconsax.arrow_right_3, size: 18) : null),
+      trailing: trailing ??
+          (onTap != null ? const Icon(Icons.chevron_right_rounded, size: 20) : null),
     );
   }
 }

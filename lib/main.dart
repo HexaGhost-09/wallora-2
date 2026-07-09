@@ -47,6 +47,20 @@ void main() async {
   runApp(WalloraApp(isFirstTime: isFirstTime));
 }
 
+// Shared gradient colors
+class AppGradients {
+  static const primary = LinearGradient(
+    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  static const accent = LinearGradient(
+    colors: [Color(0xFF06B6D4), Color(0xFF3B82F6)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
+
 class WalloraApp extends StatefulWidget {
   final bool isFirstTime;
   const WalloraApp({super.key, required this.isFirstTime});
@@ -59,7 +73,6 @@ class _WalloraAppState extends State<WalloraApp> {
   @override
   void initState() {
     super.initState();
-    // Silent check for updates on startup
     UpdateService.instance.initialize();
   }
 
@@ -73,18 +86,18 @@ class _WalloraAppState extends State<WalloraApp> {
           debugShowCheckedModeBanner: false,
           themeMode: ThemeService.instance.themeMode,
 
-          // --- LIGHT THEME (Pure White) ---
           theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.light,
             scaffoldBackgroundColor: const Color(0xFFF8F9FA),
             textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF6366F1), // Indigo/Modern vibe
+              seedColor: const Color(0xFF6366F1),
               primary: const Color(0xFF6366F1),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: const Color(0xFF1E293B),
+              surfaceContainerHighest: const Color(0xFFF1F5F9),
             ),
             appBarTheme: AppBarTheme(
               backgroundColor: Colors.transparent,
@@ -97,23 +110,27 @@ class _WalloraAppState extends State<WalloraApp> {
               ),
               iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
             ),
+            snackBarTheme: SnackBarThemeData(
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
           ),
 
-          // --- DARK THEME (Sleek Deep Black/Blue) ---
           darkTheme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
-            scaffoldBackgroundColor: const Color(
-              0xFF0F172A,
-            ), // Modern deep navy
+            scaffoldBackgroundColor: const Color(0xFF0A0F1E),
             textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF818CF8),
               brightness: Brightness.dark,
               primary: const Color(0xFF818CF8),
               onPrimary: const Color(0xFF0F172A),
-              surface: const Color(0xFF1E293B),
-              onSurface: Colors.white,
+              surface: const Color(0xFF141B2D),
+              onSurface: const Color(0xFFF1F5F9),
+              surfaceContainerHighest: const Color(0xFF1E293B),
             ),
             appBarTheme: AppBarTheme(
               backgroundColor: Colors.transparent,
@@ -125,6 +142,12 @@ class _WalloraAppState extends State<WalloraApp> {
                 fontWeight: FontWeight.bold,
               ),
               iconTheme: const IconThemeData(color: Colors.white),
+            ),
+            snackBarTheme: SnackBarThemeData(
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
           home: widget.isFirstTime ? const WelcomeScreen() : const HomePage(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:shimmer/shimmer.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -38,12 +39,7 @@ class _WallpaperTrayState extends State<WallpaperTray> {
       future: _wallpapers,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40.0),
-              child: CircularProgressIndicator(),
-            ),
-          );
+          return _buildSkeleton();
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text("No Wallpapers"));
@@ -66,6 +62,38 @@ class _WallpaperTrayState extends State<WallpaperTray> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: MasonryGridView.count(
+        crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        itemCount: 6,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: isDark
+                ? const Color(0xFF1E293B)
+                : const Color(0xFFE2E8F0),
+            highlightColor: isDark
+                ? const Color(0xFF2D3A4F)
+                : const Color(0xFFF1F5F9),
+            child: Container(
+              height: index.isEven ? 200 : 260,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

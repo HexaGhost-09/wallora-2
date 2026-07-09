@@ -15,14 +15,11 @@ import '../services/auth_service.dart';
 import '../services/wallpaper_bridge.dart';
 import 'auth_screen.dart';
 
-// async_wallpaper is Android / iOS only.
-// On desktop / web we fall back to opening the image URL in the browser.
 bool get _canSetWallpaper {
   if (kIsWeb) return false;
   return defaultTargetPlatform == TargetPlatform.android;
 }
 
-/// Shows a toast on mobile, or a SnackBar on desktop/web.
 void _showToast(BuildContext? ctx, String msg) {
   if (_canSetWallpaper) {
     Fluttertoast.showToast(msg: msg);
@@ -31,7 +28,7 @@ void _showToast(BuildContext? ctx, String msg) {
       SnackBar(
         content: Text(msg),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -101,19 +98,12 @@ class _WallpaperViewState extends State<WallpaperView> {
       );
       return;
     }
-
     if (_isLiking) return;
 
     setState(() {
       _isLiking = true;
-      // Optimistic update
-      if (_isLiked) {
-        _likesCount--;
-        _isLiked = false;
-      } else {
-        _likesCount++;
-        _isLiked = true;
-      }
+      if (_isLiked) { _likesCount--; _isLiked = false; }
+      else { _likesCount++; _isLiked = true; }
       _currentWP.isLiked = _isLiked;
       _currentWP.likesCount = _likesCount;
     });
@@ -121,19 +111,13 @@ class _WallpaperViewState extends State<WallpaperView> {
     try {
       await WalloraAPI.toggleLike(_currentWP.id, user.id, !_isLiked);
     } catch (e) {
-      // Revert on error
       setState(() {
-        if (_isLiked) {
-          _likesCount--;
-          _isLiked = false;
-        } else {
-          _likesCount++;
-          _isLiked = true;
-        }
+        if (_isLiked) { _likesCount--; _isLiked = false; }
+        else { _likesCount++; _isLiked = true; }
         _currentWP.isLiked = _isLiked;
         _currentWP.likesCount = _likesCount;
       });
-      _showToast(context, "Failed to update like status");
+      _showToast(context, "Failed to update like");
     } finally {
       setState(() => _isLiking = false);
     }
@@ -149,7 +133,6 @@ class _WallpaperViewState extends State<WallpaperView> {
       );
       return;
     }
-
     if (_isSaving) return;
 
     setState(() {
@@ -160,10 +143,7 @@ class _WallpaperViewState extends State<WallpaperView> {
 
     try {
       await WalloraAPI.toggleSave(_currentWP.id, user.id, !_isSaved);
-      _showToast(
-        context,
-        _isSaved ? "Saved to collection" : "Removed from collection",
-      );
+      _showToast(context, _isSaved ? "Saved to collection" : "Removed from collection");
     } catch (e) {
       setState(() {
         _isSaved = !_isSaved;
@@ -175,7 +155,6 @@ class _WallpaperViewState extends State<WallpaperView> {
     }
   }
 
-  /// Download / open wallpaper on platforms that can't set it natively.
   Future<void> _openWallpaperInBrowser() async {
     final uri = Uri.parse(
       _currentWP.download.isNotEmpty ? _currentWP.download : _currentWP.image,
@@ -184,19 +163,17 @@ class _WallpaperViewState extends State<WallpaperView> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not open image URL')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open image URL')),
+      );
     }
   }
 
   Future<void> _setWallpaper(int location) async {
-    // This path is only reached on Android / iOS (see _canSetWallpaper guard).
     setState(() => _isApplying = true);
     Navigator.pop(context);
 
     try {
-      // Dynamic import via runtime check — async_wallpaper is mobile-only.
       final result = await _AsyncWallpaperHelper.set(
         url: _currentWP.image,
         location: location,
@@ -206,7 +183,6 @@ class _WallpaperViewState extends State<WallpaperView> {
         final prefs = await SharedPreferences.getInstance();
         List<String> savedWallpapers =
             prefs.getStringList('applied_wallpapers') ?? [];
-
         final wallpaperMap = {
           'id': _currentWP.id,
           'category': _currentWP.category,
@@ -215,7 +191,6 @@ class _WallpaperViewState extends State<WallpaperView> {
           'download': _currentWP.download,
           'timestamp': _currentWP.timestamp,
         };
-
         final jsonStr = json.encode(wallpaperMap);
         if (!savedWallpapers.contains(jsonStr)) {
           savedWallpapers.add(jsonStr);
@@ -233,44 +208,42 @@ class _WallpaperViewState extends State<WallpaperView> {
           ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       );
     } on PlatformException {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error applying wallpaper')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error applying wallpaper')),
+      );
     } finally {
       if (mounted) setState(() => _isApplying = false);
     }
   }
 
   void _showApplyOptions() {
-    // On desktop / web: open the image in the browser for download.
     if (!_canSetWallpaper) {
       _openWallpaperInBrowser();
       return;
     }
 
-    // On Android / iOS: show the home/lock screen picker.
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.85),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(0.3),
@@ -320,15 +293,20 @@ class _WallpaperViewState extends State<WallpaperView> {
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.black.withOpacity(0.55),
-            child: const BackButton(color: Colors.white),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withOpacity(0.4),
+                child: const BackButton(color: Colors.white),
+              ),
+            ),
           ),
         ),
       ),
       body: Stack(
         children: [
-          // PageView for swiping
           PageView.builder(
             controller: _pageController,
             onPageChanged: _onPageChanged,
@@ -348,7 +326,6 @@ class _WallpaperViewState extends State<WallpaperView> {
             },
           ),
 
-          // Applying overlay
           if (_isApplying)
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
@@ -360,7 +337,6 @@ class _WallpaperViewState extends State<WallpaperView> {
               ),
             ),
 
-          // Bottom gradient + title + action buttons
           Positioned(
             left: 0,
             right: 0,
@@ -379,7 +355,6 @@ class _WallpaperViewState extends State<WallpaperView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Wallpaper title
                   if (_currentWP.title.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -402,10 +377,8 @@ class _WallpaperViewState extends State<WallpaperView> {
                       ),
                     ),
 
-                  // Action row: Like | Save | Apply Wallpaper
                   Row(
                     children: [
-                      // Like button
                       _ActionButton(
                         onPressed: _toggleLike,
                         icon: _isLiked ? Iconsax.heart5 : Iconsax.heart,
@@ -413,19 +386,12 @@ class _WallpaperViewState extends State<WallpaperView> {
                         label: _likesCount > 0 ? _likesCount.toString() : null,
                       ),
                       const SizedBox(width: 10),
-
-                      // Save button
                       _ActionButton(
                         onPressed: _toggleSave,
-                        icon: _isSaved
-                            ? Iconsax.archive_tick
-                            : Iconsax.archive_add,
+                        icon: _isSaved ? Iconsax.archive_tick : Iconsax.archive_add,
                         iconColor: _isSaved ? Colors.greenAccent : Colors.white,
-                        label: null,
                       ),
                       const SizedBox(width: 10),
-
-                      // Apply / Download Wallpaper button
                       Expanded(
                         child: SizedBox(
                           height: 54,
@@ -464,8 +430,6 @@ class _WallpaperViewState extends State<WallpaperView> {
   }
 }
 
-/// A compact square action button with solid dark background,
-/// always readable on both light and dark wallpapers.
 class _ActionButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
@@ -483,35 +447,41 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onPressed,
-      child: Container(
-        height: 54,
-        constraints: const BoxConstraints(minWidth: 54),
-        padding: label != null
-            ? const EdgeInsets.symmetric(horizontal: 14)
-            : EdgeInsets.zero,
-        decoration: BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white24),
-        ),
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: iconColor, size: 24),
-              if (label != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  label!,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            height: 54,
+            constraints: const BoxConstraints(minWidth: 54),
+            padding: label != null
+                ? const EdgeInsets.symmetric(horizontal: 14)
+                : EdgeInsets.zero,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.15)),
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: iconColor, size: 24),
+                  if (label != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      label!,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -564,28 +534,18 @@ class _ApplyOptionTile extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Wallpaper location constants (mirror AsyncWallpaper constants)
-// ---------------------------------------------------------------------------
 class _WallpaperLocation {
   static const int homeScreen = 1;
   static const int lockScreen = 2;
   static const int bothScreens = 3;
 }
 
-// ---------------------------------------------------------------------------
-// Async wallpaper helper — calls the real plugin on Android/iOS only.
-// On other platforms this should never be reached (guarded by _canSetWallpaper).
-// ---------------------------------------------------------------------------
 class _AsyncWallpaperHelper {
   static Future<String> set({
     required String url,
     required int location,
   }) async {
-    // We instantiate async_wallpaper only here, not at top-level import,
-    // so desktop compilations that never call this method are unaffected.
     try {
-      // ignore: avoid_print
       final result = await _callPlugin(url, location);
       return result;
     } catch (e) {
@@ -594,8 +554,6 @@ class _AsyncWallpaperHelper {
   }
 
   static Future<String> _callPlugin(String url, int location) async {
-    // Import async_wallpaper at call-site for maximum safety.
-    // Desktop never reaches this path due to the _canSetWallpaper guard.
     return await AsyncWallpaperBridge.setWallpaper(url, location);
   }
 }

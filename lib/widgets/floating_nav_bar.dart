@@ -14,23 +14,26 @@ class FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(36),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
-              height: 75,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.black.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(32),
+                color: isDark
+                    ? Colors.white.withOpacity(0.07)
+                    : Colors.black.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(36),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
+                  color: isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.white.withOpacity(0.15),
                   width: 1.5,
                 ),
               ),
@@ -39,19 +42,22 @@ class FloatingNavBar extends StatelessWidget {
                 children: [
                   _NavBarItem(
                     icon: Iconsax.home,
-                    activeIcon: Iconsax.home_1,
+                    activeIcon: Iconsax.home_15,
+                    label: 'Home',
                     isSelected: selectedIndex == 0,
                     onTap: () => onTap(0),
                   ),
                   _NavBarItem(
-                    icon: Iconsax.grid_5,
-                    activeIcon: Iconsax.grid_1,
+                    icon: Iconsax.category,
+                    activeIcon: Iconsax.category5,
+                    label: 'Explore',
                     isSelected: selectedIndex == 1,
                     onTap: () => onTap(1),
                   ),
                   _NavBarItem(
                     icon: Iconsax.setting_2,
-                    activeIcon: Iconsax.setting,
+                    activeIcon: Iconsax.setting_25,
+                    label: 'Settings',
                     isSelected: selectedIndex == 2,
                     onTap: () => onTap(2),
                   ),
@@ -68,53 +74,73 @@ class FloatingNavBar extends StatelessWidget {
 class _NavBarItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _NavBarItem({
     required this.icon,
     required this.activeIcon,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? primaryColor.withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutBack,
+        padding: EdgeInsets.symmetric(
+          horizontal: isSelected ? 20 : 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? primaryColor.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+          border: isSelected
+              ? Border.all(
+                  color: primaryColor.withOpacity(0.2),
+                  width: 1,
+                )
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, anim) => ScaleTransition(
+                scale: anim,
+                child: child,
+              ),
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                key: ValueKey(isSelected),
+                color: isSelected ? primaryColor : Colors.grey.withOpacity(0.5),
+                size: 24,
+              ),
             ),
-            child: Icon(
-              isSelected ? activeIcon : icon,
-              color: isSelected ? primaryColor : Colors.grey.withOpacity(0.6),
-              size: 26,
-            ),
-          ),
-          const SizedBox(height: 4),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: 4,
-            width: isSelected ? 4 : 0,
-            decoration: BoxDecoration(
-              color: primaryColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

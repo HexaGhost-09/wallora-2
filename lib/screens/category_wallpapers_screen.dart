@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 import '../models/category.dart';
 import '../models/wallpaper_model.dart';
 import '../services/api_service.dart';
@@ -53,25 +56,51 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(widget.category.title)),
+      appBar: AppBar(
+        title: Text(
+          widget.category.title,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: false,
+      ),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
-        color: Theme.of(context).colorScheme.primary,
+        color: theme.colorScheme.primary,
         child: FutureBuilder<List<Wallpaper>>(
           future: _wallpapersFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return _buildSkeleton();
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return ListView(
-                // Use ListView to ensure it's scrollable for RefreshIndicator
                 physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 200),
-                  Center(child: Text('No wallpapers found')),
+                children: [
+                  const SizedBox(height: 200),
+                  Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Iconsax.gallery_slash,
+                          size: 64,
+                          color: theme.colorScheme.onSurface.withOpacity(0.08),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No wallpapers found',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               );
             }
@@ -87,8 +116,7 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   itemCount: wallpapers.length,
-                  physics:
-                      const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
+                  physics: const AlwaysScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     return WallpaperCard(
                       wallpapers: wallpapers,
@@ -100,6 +128,37 @@ class _CategoryWallpapersScreenState extends State<CategoryWallpapersScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: MasonryGridView.count(
+        crossAxisCount: ResponsiveHelper.getCrossAxisCount(context),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        itemCount: 6,
+        physics: const NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: isDark
+                ? const Color(0xFF1E293B)
+                : const Color(0xFFE2E8F0),
+            highlightColor: isDark
+                ? const Color(0xFF2D3A4F)
+                : const Color(0xFFF1F5F9),
+            child: Container(
+              height: index.isEven ? 200 : 260,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

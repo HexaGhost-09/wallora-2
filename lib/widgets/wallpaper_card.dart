@@ -19,48 +19,68 @@ class WallpaperCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => WallpaperView(
-                  wallpapers: wallpapers,
-                  initialIndex: index,
-                ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WallpaperView(
+              wallpapers: wallpapers,
+              initialIndex: index,
+            ),
+          ),
+        );
+      },
+      child: Hero(
+        tag: wallpaper.image,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-            );
-          },
-          child: Hero(
-            tag: wallpaper.image,
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
             child: Stack(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+                CachedNetworkImage(
+                  imageUrl: wallpaper.image,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Shimmer.fromColors(
+                    baseColor: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
+                    highlightColor: isDark
+                        ? const Color(0xFF2D3A4F)
+                        : const Color(0xFFF1F5F9),
+                    child: Container(color: Colors.white),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: CachedNetworkImage(
-                      imageUrl: wallpaper.image,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Shimmer.fromColors(
-                        baseColor: Theme.of(context).colorScheme.surface,
-                        highlightColor: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.05),
-                        child: Container(color: Colors.white),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Theme.of(context).colorScheme.surface,
-                        child: const Icon(Icons.error_outline),
+                  errorWidget: (context, url, error) => Container(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: const Icon(Icons.error_outline, color: Colors.grey),
+                  ),
+                ),
+                // Subtle gradient overlay at bottom
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.35),
+                          Colors.transparent,
+                        ],
                       ),
                     ),
                   ),
@@ -75,10 +95,10 @@ class WallpaperCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withOpacity(0.35),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.15),
                         ),
                       ),
                       child: Row(
@@ -86,7 +106,7 @@ class WallpaperCard extends StatelessWidget {
                         children: [
                           const Icon(
                             Icons.favorite,
-                            size: 12,
+                            size: 11,
                             color: Colors.white,
                           ),
                           const SizedBox(width: 4),
@@ -105,9 +125,16 @@ class WallpaperCard extends StatelessWidget {
               ],
             ),
           ),
-        )
-        .animate(delay: (index * 50).ms)
-        .fadeIn(duration: 500.ms)
-        .moveY(begin: 20, end: 0, curve: Curves.easeOutBack);
+        ),
+      ),
+    )
+    .animate(delay: (index * 50).ms)
+    .fadeIn(duration: 500.ms, curve: Curves.easeOutCubic)
+    .scale(
+      begin: const Offset(0.92, 0.92),
+      end: const Offset(1, 1),
+      duration: 500.ms,
+      curve: Curves.easeOutCubic,
+    );
   }
 }

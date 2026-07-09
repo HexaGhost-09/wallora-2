@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax/iconsax.dart';
@@ -11,9 +12,11 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  late final AnimationController _blobController;
 
   final List<Map<String, dynamic>> _pages = [
     {
@@ -33,6 +36,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _blobController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _blobController.dispose();
+    super.dispose();
+  }
+
   void _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isFirstTime', false);
@@ -50,34 +69,57 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background subtle gradients
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-              ),
-            ).animate().fade(duration: 1.seconds).scale(delay: 200.ms),
-          ),
-          Positioned(
-            bottom: -50,
-            left: -50,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15),
-              ),
-            ).animate().fade(duration: 1.seconds).scale(delay: 400.ms),
+          // Animated gradient blobs
+          AnimatedBuilder(
+            animation: _blobController,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  Positioned(
+                    top: -80 + sin(_blobController.value * pi) * 40,
+                    right: -60 + cos(_blobController.value * pi * 0.7) * 30,
+                    child: Container(
+                      width: 280,
+                      height: 280,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: primary.withOpacity(0.12),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -40 + sin(_blobController.value * pi * 1.3) * 30,
+                    left: -40 + cos(_blobController.value * pi * 0.9) * 20,
+                    child: Container(
+                      width: 220,
+                      height: 220,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF06B6D4).withOpacity(0.1),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 300 + sin(_blobController.value * pi * 0.5) * 50,
+                    right: -20,
+                    child: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF8B5CF6).withOpacity(0.08),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
 
           SafeArea(
@@ -87,9 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) {
-                      setState(() {
-                        _currentPage = index;
-                      });
+                      setState(() { _currentPage = index; });
                     },
                     itemCount: _pages.length,
                     itemBuilder: (context, index) {
@@ -102,42 +142,60 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               padding: const EdgeInsets.all(32),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    primary.withOpacity(0.15),
+                                    const Color(0xFF8B5CF6).withOpacity(0.1),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                               ),
-                              child: Icon(
-                                _pages[index]['icon'],
-                                size: 80,
-                                color: Theme.of(context).colorScheme.primary,
+                              child: ShaderMask(
+                                shaderCallback: (bounds) => const LinearGradient(
+                                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ).createShader(bounds),
+                                child: Icon(
+                                  _pages[index]['icon'],
+                                  size: 80,
+                                  color: Colors.white,
+                                ),
                               ),
                             )
                             .animate(target: _currentPage == index ? 1 : 0)
                             .scale(duration: 600.ms, curve: Curves.easeOutBack)
                             .fadeIn(),
-                            
+
                             const SizedBox(height: 60),
-                            
+
                             Text(
                               _pages[index]['title'],
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: theme.colorScheme.onSurface,
+                                letterSpacing: -1,
                               ),
                             )
                             .animate(target: _currentPage == index ? 1 : 0)
                             .slideY(begin: 0.2, end: 0, duration: 600.ms, curve: Curves.easeOutCubic)
                             .fadeIn(),
-                            
+
                             const SizedBox(height: 24),
-                            
-                            Text(
-                              _pages[index]['subtitle'],
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                height: 1.5,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                _pages[index]['subtitle'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  height: 1.6,
+                                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                ),
                               ),
                             )
                             .animate(target: _currentPage == index ? 1 : 0)
@@ -149,67 +207,87 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     },
                   ),
                 ),
-                
-                // Bottom Section: Indicators and Button
+
                 Padding(
                   padding: const EdgeInsets.all(40.0),
                   child: Column(
                     children: [
-                      // Page Indicators
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           _pages.length,
                           (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeOutCubic,
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                             height: 8,
-                            width: _currentPage == index ? 24 : 8,
+                            width: _currentPage == index ? 28 : 8,
                             decoration: BoxDecoration(
-                              color: _currentPage == index
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                              gradient: _currentPage == index
+                                  ? const LinearGradient(
+                                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                    )
+                                  : null,
+                              color: _currentPage != index
+                                  ? primary.withOpacity(0.2)
+                                  : null,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 48),
-                      
-                      // Next/Get Started Button
+
                       SizedBox(
                         width: double.infinity,
                         height: 56,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_currentPage < _pages.length - 1) {
-                              _pageController.nextPage(
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeInOutCubic,
-                              );
-                            } else {
-                              _completeOnboarding();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: primary.withOpacity(0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            _currentPage < _pages.length - 1 ? 'Next' : 'Get Started',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (_currentPage < _pages.length - 1) {
+                                _pageController.nextPage(
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeInOutCubic,
+                                );
+                              } else {
+                                _completeOnboarding();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: Text(
+                              _currentPage < _pages.length - 1 ? 'Next' : 'Get Started',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ).animate().fade(duration: 800.ms, delay: 600.ms).slideY(begin: 0.2, end: 0),
+                      ).animate().fade(duration: 800.ms, delay: 600.ms).slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
                     ],
                   ),
                 ),

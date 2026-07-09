@@ -10,54 +10,69 @@ class HomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textColor = theme.colorScheme.onSurface;
+    final isDark = theme.brightness == Brightness.dark;
 
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 15),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 15),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Wallora',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w900,
-                    color: textColor,
-                    fontSize: 32,
-                    letterSpacing: -1,
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFF06B6D4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+                  child: Text(
+                    'Wallora',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      fontSize: 34,
+                      letterSpacing: -1.5,
+                      height: 1.1,
+                    ),
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  'Explore unique wallpapers',
+                  'Discover your perfect wallpaper',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withOpacity(0.5),
                     fontWeight: FontWeight.w500,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],
             ),
             Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                  ),
-                ],
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.black.withOpacity(0.04),
+                  width: 1,
+                ),
               ),
               child: IconButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SearchScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
                   );
                 },
-                icon: Icon(Iconsax.search_normal, size: 24, color: textColor),
+                icon: Icon(Iconsax.search_normal, size: 22, color: textColor),
               ),
             ),
           ],
