@@ -62,7 +62,7 @@ class FloatingNavBar extends StatelessWidget {
                         Expanded(
                           child: _NavBarItem(
                             icon: Iconsax.home_2,
-                            activeIcon: Iconsax.home_25,
+                            activeIcon: Iconsax.home_15,
                             label: 'Home',
                             isSelected: selectedIndex == 0,
                             foreground: foreground,
@@ -122,7 +122,7 @@ class FloatingNavBar extends StatelessWidget {
                         ],
                       ),
                       child: Icon(
-                        Iconsax.add,
+                        Icons.add_rounded,
                         size: 29,
                         color: foreground,
                       ),
@@ -214,7 +214,7 @@ class _NavBarItem extends StatelessWidget {
                       fontSize: 11,
                       height: 1,
                       fontWeight:
-                          isSelected ? FontWeight.w650 : FontWeight.w500,
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
                       letterSpacing: 0.05,
                     ),
                     child: Text(label),
