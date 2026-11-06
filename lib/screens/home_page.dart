@@ -3,6 +3,7 @@ import '../widgets/floating_nav_bar.dart';
 import 'home_tab.dart';
 import 'categories_tab.dart';
 import 'settings_page.dart';
+import 'search_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,6 +34,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  void _openSearch() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SearchScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,6 +59,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             curve: Curves.easeInOutCubic,
           );
         },
+        onAction: _openSearch,
       ),
     );
   }
