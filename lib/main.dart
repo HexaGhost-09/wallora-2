@@ -22,21 +22,20 @@ void main() async {
   await BackgroundService.instance.init();
   await AuthService.instance.checkAuthStatus();
 
-  // Edge-to-Edge and transparent overlays are Android / iOS only.
+  // Edge-to-edge and transparent overlays are Android / iOS only.
   final isMobile = !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
   if (isMobile) {
-    // 1. Force Edge-to-Edge
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    // 2. Set transparent overlay
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
       ),
     );
   }
