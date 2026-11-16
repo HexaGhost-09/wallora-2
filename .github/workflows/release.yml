@@ -78,7 +78,21 @@ jobs:
           yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses
           set -o pipefail
 
-          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platforms;android-37"
+          # Android 17/API 37 is published by sdkmanager as android-37.0.
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platforms;android-37.0"
+
+          PLATFORM_DIR="$SDK_ROOT/platforms/android-37.0"
+          if [[ ! -f "$PLATFORM_DIR/source.properties" ]]; then
+            echo "::error::Android API 37 platform installation did not create $PLATFORM_DIR."
+            exit 1
+          fi
+
+          # AGP 9.1.1 looks up the API 37 platform using the legacy android-37
+          # directory name on some runner images. Keep the canonical android-37.0
+          # install and provide the alias only when it is missing.
+          if [[ ! -e "$SDK_ROOT/platforms/android-37" ]]; then
+            ln -s "android-37.0" "$SDK_ROOT/platforms/android-37"
+          fi
       - run: flutter pub get
       - name: Build Android APK
         run: flutter build apk --release
