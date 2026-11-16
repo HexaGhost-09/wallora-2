@@ -14,8 +14,21 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter analyze
+      - name: Resolve app dependencies
+        run: flutter pub get
+      - name: Resolve wallpaper example dependencies
+        working-directory: packages/async_wallpaper/example
+        run: flutter pub get
+      - name: Analyze workspace
+        run: flutter analyze
+      - name: Test app
+        run: flutter test
+      - name: Test wallpaper plugin
+        working-directory: packages/async_wallpaper
+        run: flutter test
+      - name: Test wallpaper example
+        working-directory: packages/async_wallpaper/example
+        run: flutter test
 
   build_android:
     needs: analyze
