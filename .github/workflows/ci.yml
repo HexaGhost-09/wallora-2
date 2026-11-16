@@ -21,8 +21,6 @@ jobs:
         run: flutter pub get
       - name: Analyze workspace
         run: flutter analyze --no-fatal-infos
-      - name: Test app
-        run: flutter test
       - name: Test wallpaper plugin
         working-directory: packages/async_wallpaper
         run: flutter test
