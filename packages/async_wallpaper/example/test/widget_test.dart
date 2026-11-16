@@ -1,25 +1,24 @@
 // This is a basic Flutter widget test.
 //
 // To perform an interaction with a widget in your test, use the WidgetTester
-// utility that Flutter provides. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// utility that Flutter provides.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:async_wallpaper_example/main.dart';
+import '../lib/main.dart';
 
 void main() {
-  testWidgets('Verify Platform version', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Verify platform version is displayed', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: MyApp()));
 
-    // Verify that platform version is retrieved.
+    // Allow the asynchronous platform-version method call to complete.
+    await tester.pumpAndSettle();
+
     expect(
       find.byWidgetPredicate(
         (Widget widget) =>
-            widget is Text && widget.data!.startsWith('Running on:'),
+            widget is Text && (widget.data ?? '').startsWith('Running on:'),
       ),
       findsOneWidget,
     );
