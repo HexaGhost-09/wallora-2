@@ -10,26 +10,26 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^1.0.9
   rename: ^3.1.0
-  http: ^1.2.0
-  cached_network_image: ^3.3.1
+  http: ^1.6.0
+  cached_network_image: ^3.4.1
   async_wallpaper:
     path: packages/async_wallpaper
   url_launcher: ^6.3.2
-  package_info_plus: ^8.0.0
-  fluttertoast: 8.2.14
-  shared_preferences: ^2.2.3
-  flutter_local_notifications: ^21.0.0
+  package_info_plus: ^10.2.2
+  fluttertoast: ^9.0.0
+  shared_preferences: ^2.5.5
+  flutter_local_notifications: ^22.3.3
   local_notifier: ^0.1.6
-  workmanager: ^0.9.0+3
+  workmanager: ^0.10.10
   flutter_animate: ^4.5.2
-  google_fonts: ^8.0.2
+  google_fonts: ^8.2.1
   flutter_staggered_grid_view: ^0.7.0
   shimmer: ^3.0.0
   iconsax: ^0.0.8
   blurhash: ^1.2.0
-  postgres: ^3.5.9
+  postgres: ^3.6.0
 
 dev_dependencies:
   flutter_test:
