@@ -25,6 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -98,9 +102,7 @@ jobs:
         run: |
           VERSION=${{ needs.get_version.outputs.version }}
           cd build/macos/Build/Products/Release
-          # Create DMG (use wildcard for .app)
           hdiutil create -format UDZO -srcfolder *.app "Wallora-v${VERSION}.dmg"
-          # Create Zip (use wildcard for .app)
           zip -r "Wallora-macos-v${VERSION}.zip" *.app
           mv "Wallora-v${VERSION}.dmg" "$GITHUB_WORKSPACE/"
           mv "Wallora-macos-v${VERSION}.zip" "$GITHUB_WORKSPACE/"
@@ -128,7 +130,6 @@ jobs:
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r "$GITHUB_WORKSPACE/Wallora-v${VERSION}.ipa" Payload
-          # Also the zip requested
           zip -j "$GITHUB_WORKSPACE/ios-release.zip" "$GITHUB_WORKSPACE/Wallora-v${VERSION}.ipa"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -149,26 +150,14 @@ jobs:
       - name: Package builds
         run: |
           VERSION=${{ needs.get_version.outputs.version }}
-          
-          # Android
           cp artifacts/android-release/app-release.apk "Wallora-v${VERSION}.apk"
-          
-          # iOS
           cp artifacts/ios-release/Wallora-v${VERSION}.ipa "Wallora-v${VERSION}.ipa"
           zip -j "ios-release.zip" "Wallora-v${VERSION}.ipa"
-          
-          # Windows
-          # Get the EXE installer
           cp artifacts/windows-release/Wallora-v*-setup.exe "Wallora-v${VERSION}-setup.exe"
-          # Also package the raw exe folder for portable use
           cd artifacts/windows-release && zip -r "../../Wallora-windows-v${VERSION}.zip" . -x "Wallora-v*-setup.exe" && cd ../..
           cp "Wallora-windows-v${VERSION}.zip" "windows-release.zip"
-          
-          # Linux
           cp artifacts/linux-release/Wallora-linux-v${VERSION}.tar.gz .
           cp "Wallora-linux-v${VERSION}.tar.gz" "linux-release.tar.gz"
-          
-          # macOS
           cp artifacts/macos-release/Wallora-v${VERSION}.dmg .
           cp artifacts/macos-release/Wallora-macos-v${VERSION}.zip .
           cp "Wallora-macos-v${VERSION}.zip" "macos-release.zip"
