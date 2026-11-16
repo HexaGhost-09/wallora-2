@@ -51,6 +51,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
       - name: Install Android API 37
         shell: bash
         run: |
@@ -70,7 +71,14 @@ jobs:
             exit 1
           fi
 
-          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platforms;android-37"
+          # Accept SDK licences before installing the API platform. Temporarily
+          # disable pipefail because 'yes' exits with SIGPIPE after sdkmanager
+          # has consumed the answers; sdkmanager's exit code remains authoritative.
+          set +o pipefail
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses
+          set -o pipefail
+
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platforms;android-37"
       - run: flutter pub get
       - name: Build Android APK
         run: flutter build apk --release
@@ -88,6 +96,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
       - run: flutter config --enable-windows-desktop
       - run: flutter pub get
       - run: flutter build windows --release
@@ -110,6 +119,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
       - run: flutter pub get
       - name: Install Linux dependencies
         run: |
@@ -135,6 +145,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
       - run: flutter pub get
       - run: flutter build macos --release
       - name: Package macOS
@@ -161,6 +172,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
       - run: flutter pub get
       - run: flutter build ios --release --no-codesign
       - name: Create IPA
