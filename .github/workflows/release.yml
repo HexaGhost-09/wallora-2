@@ -2,8 +2,13 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+    paths:
+      - '.github/release-trigger'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,6 +23,20 @@ jobs:
       - id: ver
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | cut -d':' -f2 | xargs | cut -d'+' -f1)
+
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v${VERSION}" ]]; then
+            echo "Pushed tag $GITHUB_REF_NAME does not match pubspec version v${VERSION}."
+            exit 1
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF_TYPE" == "branch" ]]; then
+            TRIGGER_VERSION="$(tr -d '[:space:]' < .github/release-trigger)"
+            if [[ "$TRIGGER_VERSION" != "v${VERSION}" ]]; then
+              echo "Release trigger requests $TRIGGER_VERSION but pubspec.yaml is v${VERSION}."
+              exit 1
+            fi
+          fi
+
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
   build_android:
