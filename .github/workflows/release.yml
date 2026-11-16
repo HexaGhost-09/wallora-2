@@ -51,6 +51,26 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      - name: Install Android API 37
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [[ -z "$SDK_ROOT" ]]; then
+            echo "::error::Android SDK path is not configured."
+            exit 1
+          fi
+
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" && -x "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]]; then
+            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          if [[ -z "$SDKMANAGER" ]]; then
+            echo "::error::Could not locate Android sdkmanager."
+            exit 1
+          fi
+
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platforms;android-37"
       - run: flutter pub get
       - name: Build Android APK
         run: flutter build apk --release
