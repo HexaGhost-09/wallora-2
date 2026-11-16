@@ -13,7 +13,9 @@ kotlin {
 
 android {
     namespace = "com.example.wallora"
-    compileSdk = flutter.compileSdkVersion
+    // AndroidX/Flutter plugins in this dependency graph require API 37 at compile time.
+    // Keep targetSdk independent so this does not opt users into new runtime behavior.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
