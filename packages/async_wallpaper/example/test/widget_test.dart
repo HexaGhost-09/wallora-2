@@ -4,23 +4,30 @@
 // utility that Flutter provides.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../lib/main.dart';
 
 void main() {
-  testWidgets('Verify platform version is displayed', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: MyApp()));
+  const channel = MethodChannel('async_wallpaper');
 
-    // Allow the asynchronous platform-version method call to complete.
+  testWidgets('Verify platform version is displayed', (WidgetTester tester) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+      if (call.method == 'getPlatformVersion') {
+        return 'Test platform';
+      }
+      return null;
+    });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: MyApp()));
     await tester.pumpAndSettle();
 
-    expect(
-      find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is Text && (widget.data ?? '').startsWith('Running on:'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Running on: Test platform'), findsOneWidget);
   });
 }
