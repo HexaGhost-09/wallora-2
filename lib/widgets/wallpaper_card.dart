@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -24,7 +25,7 @@ class WallpaperCard extends StatelessWidget {
 
   Future<void> _showQuickActions(BuildContext context) async {
     if (ThemeService.instance.adaptiveWallpaperAccent) {
-      await ThemeService.instance.applyWallpaperAccent(wallpaper.image);
+      unawaited(ThemeService.instance.applyWallpaperAccent(wallpaper.image));
     }
     if (!context.mounted) return;
 
