@@ -6,13 +6,11 @@ import 'package:iconsax/iconsax.dart';
 class FloatingNavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
-  final VoidCallback onAction;
 
   const FloatingNavBar({
     super.key,
     required this.selectedIndex,
     required this.onTap,
-    required this.onAction,
   });
 
   @override
@@ -98,39 +96,7 @@ class FloatingNavBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
-            ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                child: Material(
-                  color: glassColor,
-                  child: InkWell(
-                    onTap: onAction,
-                    customBorder: const CircleBorder(),
-                    child: Container(
-                      width: 66,
-                      height: 66,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: borderColor, width: 1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.07),
-                            blurRadius: 20,
-                            offset: const Offset(0, 7),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.add_rounded,
-                        size: 29,
-                        color: foreground,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+
           ],
         ),
       ),
