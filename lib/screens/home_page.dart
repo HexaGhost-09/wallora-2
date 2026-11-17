@@ -13,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _selectedIndex = 0;
+  bool _isPageAnimating = false;
   late final PageController _pageController;
 
   final List<Widget> _screens = const [
@@ -40,17 +41,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (i) => setState(() => _selectedIndex = i),
         children: _screens,
       ),
       bottomNavigationBar: FloatingNavBar(
         selectedIndex: _selectedIndex,
-        onTap: (i) {
-          _pageController.animateToPage(
-            i,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeInOutCubic,
-          );
+        onTap: (i) async {
+          if (i == _selectedIndex || _isPageAnimating) return;
+          setState(() {
+            _selectedIndex = i;
+            _isPageAnimating = true;
+          });
+          try {
+            await _pageController.animateToPage(
+              i,
+              duration: const Duration(milliseconds: 420),
+              curve: Curves.easeInOutCubicEmphasized,
+            );
+          } finally {
+            if (mounted) setState(() => _isPageAnimating = false);
+          }
         },
       ),
     );

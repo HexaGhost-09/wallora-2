@@ -55,39 +55,71 @@ class FloatingNavBar extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: Stack(
                       children: [
-                        Expanded(
-                          child: _NavBarItem(
-                            icon: Iconsax.home_2,
-                            activeIcon: Iconsax.home_15,
-                            label: 'Home',
-                            isSelected: selectedIndex == 0,
-                            foreground: foreground,
-                            isDark: isDark,
-                            onTap: () => onTap(0),
+                        Positioned.fill(
+                          child: AnimatedAlign(
+                            alignment: Alignment(-1 + selectedIndex, 0),
+                            duration: const Duration(milliseconds: 360),
+                            curve: Curves.easeInOutCubicEmphasized,
+                            child: FractionallySizedBox(
+                              widthFactor: 1 / 3,
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white.withOpacity(0.13)
+                                        : Colors.black.withOpacity(0.055),
+                                    borderRadius: BorderRadius.circular(29),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? Colors.white.withOpacity(0.055)
+                                          : Colors.black.withOpacity(0.035),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        Expanded(
-                          child: _NavBarItem(
-                            icon: Iconsax.category,
-                            activeIcon: Iconsax.category5,
-                            label: 'Explore',
-                            isSelected: selectedIndex == 1,
-                            foreground: foreground,
-                            isDark: isDark,
-                            onTap: () => onTap(1),
-                          ),
-                        ),
-                        Expanded(
-                          child: _NavBarItem(
-                            icon: Iconsax.setting_2,
-                            activeIcon: Iconsax.setting_25,
-                            label: 'Settings',
-                            isSelected: selectedIndex == 2,
-                            foreground: foreground,
-                            isDark: isDark,
-                            onTap: () => onTap(2),
+                        Positioned.fill(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _NavBarItem(
+                                  icon: Iconsax.home_2,
+                                  activeIcon: Iconsax.home_15,
+                                  label: 'Home',
+                                  isSelected: selectedIndex == 0,
+                                  foreground: foreground,
+                                  isDark: isDark,
+                                  onTap: () => onTap(0),
+                                ),
+                              ),
+                              Expanded(
+                                child: _NavBarItem(
+                                  icon: Iconsax.category,
+                                  activeIcon: Iconsax.category5,
+                                  label: 'Explore',
+                                  isSelected: selectedIndex == 1,
+                                  foreground: foreground,
+                                  isDark: isDark,
+                                  onTap: () => onTap(1),
+                                ),
+                              ),
+                              Expanded(
+                                child: _NavBarItem(
+                                  icon: Iconsax.setting_2,
+                                  activeIcon: Iconsax.setting_25,
+                                  label: 'Settings',
+                                  isSelected: selectedIndex == 2,
+                                  foreground: foreground,
+                                  isDark: isDark,
+                                  onTap: () => onTap(2),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -129,64 +161,53 @@ class _NavBarItem extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark
-                  ? Colors.white.withOpacity(0.13)
-                  : Colors.black.withOpacity(0.055))
-              : Colors.transparent,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(29),
-          border: isSelected
-              ? Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.055)
-                      : Colors.black.withOpacity(0.035),
-                )
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(29),
-            child: SizedBox.expand(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    transitionBuilder: (child, animation) =>
-                        ScaleTransition(scale: animation, child: child),
-                    child: Icon(
-                      isSelected ? activeIcon : icon,
-                      key: ValueKey(isSelected),
-                      size: 22,
-                      color: isSelected
-                          ? selectedColor
-                          : foreground.withOpacity(0.72),
+          child: SizedBox.expand(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 240),
+                  reverseDuration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOutBack,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(
+                      scale: Tween<double>(begin: 0.78, end: 1).animate(animation),
+                      child: child,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOut,
-                    style: TextStyle(
-                      color: isSelected
-                          ? selectedColor
-                          : foreground.withOpacity(0.72),
-                      fontSize: 11,
-                      height: 1,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
-                      letterSpacing: 0.05,
-                    ),
-                    child: Text(label),
+                  child: Icon(
+                    isSelected ? activeIcon : icon,
+                    key: ValueKey(isSelected),
+                    size: 22,
+                    color: isSelected
+                        ? selectedColor
+                        : foreground.withOpacity(0.72),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 4),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  style: TextStyle(
+                    color: isSelected
+                        ? selectedColor
+                        : foreground.withOpacity(0.72),
+                    fontSize: 11,
+                    height: 1,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.w500,
+                    letterSpacing: 0.05,
+                  ),
+                  child: Text(label),
+                ),
+              ],
             ),
           ),
         ),

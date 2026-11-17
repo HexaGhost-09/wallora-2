@@ -31,27 +31,39 @@ class _HomeTabState extends State<HomeTab> {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
-        child: Column(
-          children: [
-            const HomeHeader(),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _handleRefresh,
-                color: Theme.of(context).colorScheme.primary,
-                child: SingleChildScrollView(
-                  physics:
-                      const AlwaysScrollableScrollPhysics(), // Ensure it's always scrollable for RefreshIndicator
-                  child: Column(
-                    children: [
-                      WallpaperTray(key: _trayKey),
-                      // Space for floating nav bar
-                      const SizedBox(height: 100),
-                    ],
-                  ),
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: Theme.of(context).colorScheme.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                primary: false,
+                floating: true,
+                snap: true,
+                pinned: false,
+                toolbarHeight: 112,
+                automaticallyImplyLeading: false,
+                titleSpacing: 0,
+                title: const SizedBox(
+                  width: double.infinity,
+                  child: HomeHeader(),
+                ),
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    WallpaperTray(key: _trayKey),
+                    const SizedBox(height: 100),
+                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
