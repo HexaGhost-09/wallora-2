@@ -49,7 +49,7 @@ class _HomeTabState extends State<HomeTab> {
                   width: double.infinity,
                   child: HomeHeader(),
                 ),
-                backgroundColor: theme.colorScheme.surface.withOpacity(0.96),
+                backgroundColor: theme.scaffoldBackgroundColor,
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 scrolledUnderElevation: 0,
