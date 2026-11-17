@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'screens/home_page.dart';
 import 'screens/welcome_screen.dart';
 import 'services/update_service.dart';
@@ -14,22 +15,17 @@ import 'services/auth_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize ThemeService
   await ThemeService.instance.init();
-
-  // Initialize Notifications and Background Worker
   await NotificationService.instance.init();
   await BackgroundService.instance.init();
   await AuthService.instance.checkAuthStatus();
 
-  // Edge-to-edge and transparent overlays are Android / iOS only.
   final isMobile = !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
   if (isMobile) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -42,11 +38,9 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final isFirstTime = prefs.getBool('isFirstTime') ?? true;
-
   runApp(WalloraApp(isFirstTime: isFirstTime));
 }
 
-// Shared gradient colors
 class AppGradients {
   static const primary = LinearGradient(
     colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
@@ -84,7 +78,6 @@ class _WalloraAppState extends State<WalloraApp> {
           title: 'Wallora',
           debugShowCheckedModeBanner: false,
           themeMode: ThemeService.instance.themeMode,
-
           theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.light,
@@ -116,7 +109,6 @@ class _WalloraAppState extends State<WalloraApp> {
               ),
             ),
           ),
-
           darkTheme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
@@ -149,9 +141,124 @@ class _WalloraAppState extends State<WalloraApp> {
               ),
             ),
           ),
-          home: widget.isFirstTime ? const WelcomeScreen() : const HomePage(),
+          home: widget.isFirstTime
+              ? const WelcomeScreen()
+              : const _WhatsNewGate(child: HomePage()),
         );
       },
+    );
+  }
+}
+
+class _WhatsNewGate extends StatefulWidget {
+  final Widget child;
+  const _WhatsNewGate({required this.child});
+
+  @override
+  State<_WhatsNewGate> createState() => _WhatsNewGateState();
+}
+
+class _WhatsNewGateState extends State<_WhatsNewGate> {
+  static const _shownKey = 'whats_new_v1_7_2_shown';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showOnce());
+  }
+
+  Future<void> _showOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_shownKey) ?? false) return;
+
+    // Persist before opening so interruptions cannot make the dialog repeat.
+    await prefs.setBool(_shownKey, true);
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(26),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded,
+                  color: theme.colorScheme.primary),
+              const SizedBox(width: 10),
+              const Expanded(child: Text("What's new in 1.7.2")),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                _ChangeItem(
+                  title: 'Category search',
+                  detail: 'Search categories separately and open matching wallpaper collections.',
+                ),
+                SizedBox(height: 16),
+                _ChangeItem(
+                  title: 'Smoother navigation',
+                  detail: 'Refined the Settings icon animation and bottom navigation transitions.',
+                ),
+                SizedBox(height: 16),
+                _ChangeItem(
+                  title: 'Fixes',
+                  detail: 'Fixed the sketchy Settings icon switch and improved search result handling.',
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Got it'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+class _ChangeItem extends StatelessWidget {
+  final String title;
+  final String detail;
+
+  const _ChangeItem({required this.title, required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.check_circle_rounded,
+            size: 19, color: theme.colorScheme.primary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              )),
+              const SizedBox(height: 3),
+              Text(detail, style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.68),
+              )),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
