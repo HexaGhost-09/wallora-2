@@ -83,8 +83,8 @@ class _WalloraAppState extends State<WalloraApp> {
             scaffoldBackgroundColor: const Color(0xFFF8F9FA),
             textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF6366F1),
-              primary: const Color(0xFF6366F1),
+              seedColor: ThemeService.instance.accentColor,
+              primary: ThemeService.instance.accentColor,
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: const Color(0xFF1E293B),
@@ -114,9 +114,9 @@ class _WalloraAppState extends State<WalloraApp> {
             scaffoldBackgroundColor: const Color(0xFF0A0F1E),
             textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF818CF8),
+              seedColor: ThemeService.instance.accentColor,
               brightness: Brightness.dark,
-              primary: const Color(0xFF818CF8),
+              primary: ThemeService.instance.accentColor,
               onPrimary: const Color(0xFF0F172A),
               surface: const Color(0xFF141B2D),
               onSurface: const Color(0xFFF1F5F9),
@@ -158,7 +158,7 @@ class _WhatsNewGate extends StatefulWidget {
 }
 
 class _WhatsNewGateState extends State<_WhatsNewGate> {
-  static const _shownKey = 'whats_new_v1_7_3_shown';
+  static const _shownKey = 'whats_new_v1_7_4_shown';
 
   @override
   void initState() {
@@ -188,7 +188,7 @@ class _WhatsNewGateState extends State<_WhatsNewGate> {
               Icon(Icons.auto_awesome_rounded,
                   color: theme.colorScheme.primary),
               const SizedBox(width: 10),
-              const Expanded(child: Text("What's new in 1.7.3")),
+              const Expanded(child: Text("What's new in 1.7.4")),
             ],
           ),
           content: SingleChildScrollView(
@@ -207,8 +207,18 @@ class _WhatsNewGateState extends State<_WhatsNewGate> {
                 ),
                 SizedBox(height: 16),
                 _ChangeItem(
-                  title: 'Theme consistency',
-                  detail: 'Matched the home header background to the active screen theme.',
+                  title: 'Wallpaper quick actions',
+                  detail: 'Long-press a wallpaper to focus it with a blurred background and quick Save, Like and Apply actions.',
+                ),
+                SizedBox(height: 16),
+                _ChangeItem(
+                  title: 'Dynamic Material colors',
+                  detail: 'Choose an accent palette or extract an accent color from a wallpaper.',
+                ),
+                SizedBox(height: 16),
+                _ChangeItem(
+                  title: 'Accent navigation',
+                  detail: 'The selected navigation item now follows your chosen accent color.',
                 ),
               ],
             ),
