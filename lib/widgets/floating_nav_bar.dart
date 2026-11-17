@@ -59,7 +59,7 @@ class FloatingNavBar extends StatelessWidget {
                       children: [
                         Positioned.fill(
                           child: AnimatedAlign(
-                            alignment: Alignment(-1 + selectedIndex, 0),
+                            alignment: Alignment(-1.0 + selectedIndex.toDouble(), 0.0),
                             duration: const Duration(milliseconds: 360),
                             curve: Curves.easeInOutCubicEmphasized,
                             child: FractionallySizedBox(
