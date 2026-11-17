@@ -94,8 +94,6 @@ class FloatingNavBar extends StatelessWidget {
                           label: 'Explore',
                           isSelected: selectedIndex == 1,
                           foreground: foreground,
-                          isDark: isDark,
-                          accent: accent,
                           selectedForeground: selectedForeground,
                           onTap: () => onTap(1),
                         ),
