@@ -84,8 +84,6 @@ class FloatingNavBar extends StatelessWidget {
                           label: 'Home',
                           isSelected: selectedIndex == 0,
                           foreground: foreground,
-                          isDark: isDark,
-                          accent: accent,
                           selectedForeground: selectedForeground,
                           onTap: () => onTap(0),
                         ),
@@ -131,8 +129,6 @@ class _NavBarItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final Color foreground;
-  final bool isDark;
-  final Color accent;
   final Color selectedForeground;
   final VoidCallback onTap;
 
@@ -141,8 +137,6 @@ class _NavBarItem extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.foreground,
-    required this.isDark,
-    required this.accent,
     required this.selectedForeground,
     required this.onTap,
   });
