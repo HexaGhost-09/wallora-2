@@ -17,6 +17,8 @@ class FloatingNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final foreground = isDark ? Colors.white : const Color(0xFF171923);
+    final accent = Theme.of(context).colorScheme.primary;
+    final selectedForeground = Theme.of(context).colorScheme.onPrimary;
     final glassColor = isDark
         ? const Color(0xFF202127).withOpacity(0.78)
         : Colors.white.withOpacity(0.78);
@@ -66,9 +68,7 @@ class FloatingNavBar extends StatelessWidget {
                           padding: const EdgeInsets.all(2),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.13)
-                                  : Colors.black.withOpacity(0.055),
+                              color: accent,
                               borderRadius: BorderRadius.circular(29),
                             ),
                           ),
@@ -85,6 +85,8 @@ class FloatingNavBar extends StatelessWidget {
                           isSelected: selectedIndex == 0,
                           foreground: foreground,
                           isDark: isDark,
+                          accent: accent,
+                          selectedForeground: selectedForeground,
                           onTap: () => onTap(0),
                         ),
                       ),
@@ -95,6 +97,8 @@ class FloatingNavBar extends StatelessWidget {
                           isSelected: selectedIndex == 1,
                           foreground: foreground,
                           isDark: isDark,
+                          accent: accent,
+                          selectedForeground: selectedForeground,
                           onTap: () => onTap(1),
                         ),
                       ),
@@ -105,6 +109,8 @@ class FloatingNavBar extends StatelessWidget {
                           isSelected: selectedIndex == 2,
                           foreground: foreground,
                           isDark: isDark,
+                          accent: accent,
+                          selectedForeground: selectedForeground,
                           onTap: () => onTap(2),
                         ),
                       ),
@@ -126,6 +132,8 @@ class _NavBarItem extends StatelessWidget {
   final bool isSelected;
   final Color foreground;
   final bool isDark;
+  final Color accent;
+  final Color selectedForeground;
   final VoidCallback onTap;
 
   const _NavBarItem({
@@ -134,14 +142,14 @@ class _NavBarItem extends StatelessWidget {
     required this.isSelected,
     required this.foreground,
     required this.isDark,
+    required this.accent,
+    required this.selectedForeground,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected
-        ? (isDark ? Colors.white : const Color(0xFF171923))
-        : foreground.withOpacity(0.72);
+    final color = isSelected ? selectedForeground : foreground.withOpacity(0.72);
 
     return Material(
       color: Colors.transparent,
