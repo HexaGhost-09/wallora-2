@@ -28,108 +28,92 @@ class FloatingNavBar extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(34),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              height: 76,
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: glassColor,
                 borderRadius: BorderRadius.circular(34),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                  child: Container(
-                    height: 76,
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: glassColor,
-                      borderRadius: BorderRadius.circular(34),
-                      border: Border.all(color: borderColor, width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(isDark ? 0.24 : 0.08),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withOpacity(isDark ? 0.035 : 0.5),
-                          blurRadius: 1,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: AnimatedAlign(
-                            alignment: Alignment(-1.0 + selectedIndex.toDouble(), 0.0),
-                            duration: const Duration(milliseconds: 360),
-                            curve: Curves.easeInOutCubicEmphasized,
-                            child: FractionallySizedBox(
-                              widthFactor: 1 / 3,
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withOpacity(0.13)
-                                        : Colors.black.withOpacity(0.055),
-                                    borderRadius: BorderRadius.circular(29),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? Colors.white.withOpacity(0.055)
-                                          : Colors.black.withOpacity(0.035),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                border: Border.all(color: borderColor, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.24 : 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withOpacity(isDark ? 0.035 : 0.5),
+                    blurRadius: 1,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: AnimatedAlign(
+                      alignment:
+                          Alignment(-1.0 + selectedIndex.toDouble(), 0.0),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      child: FractionallySizedBox(
+                        widthFactor: 1 / 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.13)
+                                  : Colors.black.withOpacity(0.055),
+                              borderRadius: BorderRadius.circular(29),
                             ),
                           ),
                         ),
-                        Positioned.fill(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _NavBarItem(
-                                  icon: Iconsax.home_2,
-                                  activeIcon: Iconsax.home_15,
-                                  label: 'Home',
-                                  isSelected: selectedIndex == 0,
-                                  foreground: foreground,
-                                  isDark: isDark,
-                                  onTap: () => onTap(0),
-                                ),
-                              ),
-                              Expanded(
-                                child: _NavBarItem(
-                                  icon: Iconsax.category,
-                                  activeIcon: Iconsax.category5,
-                                  label: 'Explore',
-                                  isSelected: selectedIndex == 1,
-                                  foreground: foreground,
-                                  isDark: isDark,
-                                  onTap: () => onTap(1),
-                                ),
-                              ),
-                              Expanded(
-                                child: _NavBarItem(
-                                  icon: Iconsax.setting_2,
-                                  activeIcon: Iconsax.setting_25,
-                                  label: 'Settings',
-                                  isSelected: selectedIndex == 2,
-                                  foreground: foreground,
-                                  isDark: isDark,
-                                  onTap: () => onTap(2),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavBarItem(
+                          icon: Iconsax.home_2,
+                          label: 'Home',
+                          isSelected: selectedIndex == 0,
+                          foreground: foreground,
+                          isDark: isDark,
+                          onTap: () => onTap(0),
+                        ),
+                      ),
+                      Expanded(
+                        child: _NavBarItem(
+                          icon: Iconsax.category,
+                          label: 'Explore',
+                          isSelected: selectedIndex == 1,
+                          foreground: foreground,
+                          isDark: isDark,
+                          onTap: () => onTap(1),
+                        ),
+                      ),
+                      Expanded(
+                        child: _NavBarItem(
+                          icon: Iconsax.setting_2,
+                          label: 'Settings',
+                          isSelected: selectedIndex == 2,
+                          foreground: foreground,
+                          isDark: isDark,
+                          onTap: () => onTap(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-
-          ],
+          ),
         ),
       ),
     );
@@ -138,7 +122,6 @@ class FloatingNavBar extends StatelessWidget {
 
 class _NavBarItem extends StatelessWidget {
   final IconData icon;
-  final IconData activeIcon;
   final String label;
   final bool isSelected;
   final Color foreground;
@@ -147,7 +130,6 @@ class _NavBarItem extends StatelessWidget {
 
   const _NavBarItem({
     required this.icon,
-    required this.activeIcon,
     required this.label,
     required this.isSelected,
     required this.foreground,
@@ -157,58 +139,44 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = isDark ? Colors.white : const Color(0xFF171923);
+    final color = isSelected
+        ? (isDark ? Colors.white : const Color(0xFF171923))
+        : foreground.withOpacity(0.72);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(29),
-          child: SizedBox.expand(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 240),
-                  reverseDuration: const Duration(milliseconds: 180),
-                  switchInCurve: Curves.easeOutBack,
-                  switchOutCurve: Curves.easeIn,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: ScaleTransition(
-                      scale: Tween<double>(begin: 0.78, end: 1).animate(animation),
-                      child: child,
-                    ),
-                  ),
-                  child: Icon(
-                    isSelected ? activeIcon : icon,
-                    key: ValueKey(isSelected),
-                    size: 22,
-                    color: isSelected
-                        ? selectedColor
-                        : foreground.withOpacity(0.72),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 220),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(29),
+        child: SizedBox.expand(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: isSelected ? 1.06 : 1,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: AnimatedRotation(
+                  turns: isSelected && label == 'Settings' ? 0.035 : 0,
+                  duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
-                  style: TextStyle(
-                    color: isSelected
-                        ? selectedColor
-                        : foreground.withOpacity(0.72),
-                    fontSize: 11,
-                    height: 1,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w500,
-                    letterSpacing: 0.05,
-                  ),
-                  child: Text(label),
+                  child: Icon(icon, size: 22, color: color),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 4),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  height: 1,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: 0.05,
+                ),
+                child: Text(label),
+              ),
+            ],
           ),
         ),
       ),
