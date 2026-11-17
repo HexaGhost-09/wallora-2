@@ -227,6 +227,16 @@ jobs:
           cp artifacts/macos-release/Wallora-macos-v${VERSION}.zip .
           cp "Wallora-macos-v${VERSION}.zip" "macos-release.zip"
 
+      - name: Recreate release tag at this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ needs.get_version.outputs.version }}"
+          curl -fsS -X DELETE \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" || true
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
