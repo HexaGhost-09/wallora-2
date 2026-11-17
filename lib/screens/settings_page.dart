@@ -269,30 +269,41 @@ class _SettingsPageState extends State<SettingsPage> {
                               children: ThemeService.presets.map((preset) {
                                 final selected = !ThemeService.instance.adaptiveWallpaperAccent &&
                                     ThemeService.instance.accentColor.value == preset.color.value;
-                                return Tooltip(
-                                  message: preset.name,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      await ThemeService.instance.setAccentColor(preset.color);
-                                      if (mounted) setState(() {});
-                                    },
-                                    borderRadius: BorderRadius.circular(30),
-                                    child: Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: preset.color,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: selected ? theme.colorScheme.onSurface : Colors.transparent,
-                                          width: 2.5,
+                                return SizedBox(
+                                  width: 60,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Tooltip(
+                                        message: preset.name,
+                                        child: InkWell(
+                                          onTap: () async {
+                                            await ThemeService.instance.setAccentColor(preset.color);
+                                            if (mounted) setState(() {});
+                                          },
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Container(
+                                            width: 38,
+                                            height: 38,
+                                            decoration: BoxDecoration(
+                                              color: preset.color,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: selected ? theme.colorScheme.onSurface : Colors.transparent,
+                                                width: 2.5,
+                                              ),
+                                            ),
+                                            child: selected
+                                                ? const Icon(Icons.check_rounded,
+                                                    color: Colors.white, size: 19)
+                                                : null,
+                                          ),
                                         ),
                                       ),
-                                      child: selected
-                                          ? Icon(Icons.check_rounded,
-                                              color: Colors.white, size: 19)
-                                          : null,
-                                    ),
+                                      const SizedBox(height: 5),
+                                      Text(preset.name,
+                                          style: theme.textTheme.labelSmall),
+                                    ],
                                   ),
                                 );
                               }).toList(),
