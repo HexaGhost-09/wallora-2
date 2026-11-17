@@ -39,8 +39,7 @@ class WallpaperCard extends StatelessWidget {
           builder: (dialogContext, setDialogState) {
             final theme = Theme.of(dialogContext);
             Future<void> requireUser() async {
-              final user = AuthService.instance.currentUser;
-              if (user == null) {
+              if (AuthService.instance.currentUser == null) {
                 Navigator.pop(dialogContext);
                 await Navigator.push(
                   context,
