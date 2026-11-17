@@ -250,6 +250,72 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Accent color',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 14,
+                              runSpacing: 14,
+                              children: ThemeService.presets.map((preset) {
+                                final selected = !ThemeService.instance.adaptiveWallpaperAccent &&
+                                    ThemeService.instance.accentColor.value == preset.color.value;
+                                return Tooltip(
+                                  message: preset.name,
+                                  child: InkWell(
+                                    onTap: () async {
+                                      await ThemeService.instance.setAccentColor(preset.color);
+                                      if (mounted) setState(() {});
+                                    },
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: preset.color,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: selected ? theme.colorScheme.onSurface : Colors.transparent,
+                                          width: 2.5,
+                                        ),
+                                      ),
+                                      child: selected
+                                          ? Icon(Icons.check_rounded,
+                                              color: Colors.white, size: 19)
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SwitchListTile(
+                        value: ThemeService.instance.adaptiveWallpaperAccent,
+                        onChanged: (value) async {
+                          await ThemeService.instance.setAdaptiveWallpaperAccent(value);
+                          if (mounted) setState(() {});
+                        },
+                        title: const Text('Adapt color from wallpaper'),
+                        subtitle: const Text(
+                          'When enabled, focusing a wallpaper extracts its accent and applies it across the app.',
+                        ),
+                        secondary: Icon(
+                          Icons.auto_awesome_rounded,
+                          color: theme.colorScheme.primary,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
                     ],
                   ).animate(delay: 100.ms).fadeIn(duration: 400.ms, curve: Curves.easeOutCubic).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
 
