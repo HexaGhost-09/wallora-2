@@ -79,12 +79,6 @@ flutter run
 
 ---
 
-## 🎮 Play Wallora on itch.io
-
-[![Play Wallora on itch.io](https://img.shields.io/badge/Play%20on-itch.io-ff2453?style=for-the-badge&logo=itch.io)](https://hexaghost-09.itch.io/wallora)
-
----
-
 ## 🤝 Community & Support
 
 *   **Reporting Bugs**: Use our [Bug Report Form](https://github.com/HexaGhost-09/wallora-2/issues/new?template=bug_report.yml).
