@@ -24,17 +24,31 @@ class WallpaperCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => WallpaperView(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => WallpaperView(
               wallpapers: wallpapers,
               initialIndex: index,
             ),
+            transitionDuration: const Duration(milliseconds: 300),
+            reverseTransitionDuration: const Duration(milliseconds: 240),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              final curved = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              );
+              return FadeTransition(
+                opacity: curved,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.985, end: 1).animate(curved),
+                  child: child,
+                ),
+              );
+            },
           ),
         );
       },
-      child: Hero(
-        tag: wallpaper.image,
-        child: Container(
+      child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -125,7 +139,6 @@ class WallpaperCard extends StatelessWidget {
               ],
             ),
           ),
-        ),
       ),
     )
     .animate(delay: (index * 50).ms)
