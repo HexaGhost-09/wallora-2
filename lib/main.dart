@@ -85,7 +85,6 @@ class _WalloraAppState extends State<WalloraApp> {
             colorScheme: ColorScheme.fromSeed(
               seedColor: ThemeService.instance.accentColor,
               primary: ThemeService.instance.accentColor,
-              onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: const Color(0xFF1E293B),
               surfaceContainerHighest: const Color(0xFFF1F5F9),
@@ -117,7 +116,6 @@ class _WalloraAppState extends State<WalloraApp> {
               seedColor: ThemeService.instance.accentColor,
               brightness: Brightness.dark,
               primary: ThemeService.instance.accentColor,
-              onPrimary: const Color(0xFF0F172A),
               surface: const Color(0xFF141B2D),
               onSurface: const Color(0xFFF1F5F9),
               surfaceContainerHighest: const Color(0xFF1E293B),
