@@ -88,11 +88,24 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _launchGitHubUrl() async {
-    final uri = Uri.parse('https://github.com/HexaGhost-09/wallora-2/releases');
+    await _launchExternalUrl('https://github.com/HexaGhost-09/wallora-2/releases');
+  }
+
+  Future<void> _launchExternalUrl(String url) async {
+    final uri = Uri.parse(url);
     try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open this link.')),
+        );
+      }
     } catch (e) {
-      debugPrint('Could not launch GitHub URL: $e');
+      debugPrint('Could not launch URL: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open this link.')),
+        );
+      }
     }
   }
 
@@ -198,36 +211,40 @@ class _SettingsPageState extends State<SettingsPage> {
                       _SettingsTile(
                         icon: Iconsax.colors_square,
                         title: "Theme Mode",
-                        subtitle: "Switch between light and dark",
-                        trailing: SegmentedButton<ThemeMode>(
-                          segments: const [
-                            ButtonSegment(
-                              value: ThemeMode.light,
-                              label: Text('Light'),
-                              icon: Icon(Icons.light_mode, size: 16),
-                            ),
-                            ButtonSegment(
-                              value: ThemeMode.system,
-                              label: Text('Auto'),
-                              icon: Icon(Icons.auto_mode, size: 16),
-                            ),
-                            ButtonSegment(
-                              value: ThemeMode.dark,
-                              label: Text('Dark'),
-                              icon: Icon(Icons.dark_mode, size: 16),
-                            ),
-                          ],
-                          selected: {ThemeService.instance.themeMode},
-                          onSelectionChanged: (Set<ThemeMode> selected) {
-                            ThemeService.instance.setThemeMode(selected.first);
-                            setState(() {});
-                          },
-                          style: ButtonStyle(
-                            visualDensity: VisualDensity.compact,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: WidgetStatePropertyAll(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        subtitle: "Choose light, automatic, or dark appearance",
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: SegmentedButton<ThemeMode>(
+                            showSelectedIcon: false,
+                            segments: const [
+                              ButtonSegment(
+                                value: ThemeMode.light,
+                                label: Text('Light'),
+                              ),
+                              ButtonSegment(
+                                value: ThemeMode.system,
+                                label: Text('Auto'),
+                              ),
+                              ButtonSegment(
+                                value: ThemeMode.dark,
+                                label: Text('Dark'),
+                              ),
+                            ],
+                            selected: {ThemeService.instance.themeMode},
+                            onSelectionChanged: (Set<ThemeMode> selected) {
+                              ThemeService.instance.setThemeMode(selected.first);
+                              setState(() {});
+                            },
+                            style: ButtonStyle(
+                              visualDensity: VisualDensity.compact,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: WidgetStatePropertyAll(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
@@ -316,6 +333,50 @@ class _SettingsPageState extends State<SettingsPage> {
                       ],
                     ],
                   ).animate(delay: 200.ms).fadeIn(duration: 400.ms, curve: Curves.easeOutCubic).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
+
+                  const SizedBox(height: 24),
+
+                  // --- LINKS SECTION ---
+                  _SettingsSection(
+                    title: "Links",
+                    children: [
+                      _SettingsTile(
+                        icon: Iconsax.code,
+                        title: "GitHub Repository",
+                        subtitle: "Source code, issues, and contributions",
+                        onTap: () => _launchExternalUrl(
+                          'https://github.com/HexaGhost-09/wallora-2',
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: theme.colorScheme.onSurface.withOpacity(0.06),
+                      ),
+                      _SettingsTile(
+                        icon: Iconsax.shop,
+                        title: "Store",
+                        subtitle: "Get Wallora on itch.io",
+                        onTap: () => _launchExternalUrl(
+                          'https://hexaghost-09.itch.io/wallora',
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: theme.colorScheme.onSurface.withOpacity(0.06),
+                      ),
+                      _SettingsTile(
+                        icon: Iconsax.global,
+                        title: "Website",
+                        subtitle: "wallora-web.netlify.app",
+                        onTap: () => _launchExternalUrl(
+                          'https://wallora-web.netlify.app',
+                        ),
+                      ),
+                    ],
+                  ).animate(delay: 250.ms).fadeIn(
+                    duration: 400.ms,
+                    curve: Curves.easeOutCubic,
+                  ).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
 
                   const SizedBox(height: 40),
                   Center(
@@ -411,6 +472,9 @@ class _SettingsTile extends StatelessWidget {
     final theme = Theme.of(context);
     return ListTile(
       onTap: onTap,
+      dense: false,
+      minLeadingWidth: 0,
+      horizontalTitleGap: 12,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
@@ -426,10 +490,14 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15),
       ),
       subtitle: Text(
         subtitle,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: GoogleFonts.outfit(
           fontWeight: FontWeight.w500,
           fontSize: 13,
