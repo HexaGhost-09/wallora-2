@@ -313,14 +313,15 @@ class _WallpaperViewState extends State<WallpaperView> {
             itemCount: widget.wallpapers.length,
             itemBuilder: (context, index) {
               final wallpaper = widget.wallpapers[index];
-              return Hero(
-                tag: wallpaper.image,
-                child: CachedNetworkImage(
-                  imageUrl: wallpaper.image,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => const Center(
-                    child: CircularProgressIndicator(color: Colors.white24),
-                  ),
+              return CachedNetworkImage(
+                imageUrl: wallpaper.image,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(color: Colors.white24),
+                ),
+                errorWidget: (context, url, error) => const Center(
+                  child: Icon(Icons.broken_image_outlined,
+                      color: Colors.white54, size: 42),
                 ),
               );
             },

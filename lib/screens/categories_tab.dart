@@ -17,6 +17,14 @@ class CategoriesTab extends StatefulWidget {
 
 class _CategoriesTabState extends State<CategoriesTab> {
   late Future<List<Category>> _categoriesFuture;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -48,31 +56,63 @@ class _CategoriesTabState extends State<CategoriesTab> {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Explore',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w900,
-                            color: textColor,
-                            fontSize: 32,
-                            letterSpacing: -1.5,
+                    Text(
+                      'Explore',
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w900,
+                        color: textColor,
+                        fontSize: 32,
+                        letterSpacing: -1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Browse by category',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: textColor.withOpacity(0.5),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (value) => setState(() => _searchQuery = value.trim()),
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: 'Search categories...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        suffixIcon: _searchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear search',
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              ),
+                        filled: true,
+                        fillColor: theme.colorScheme.surfaceContainerHighest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary.withOpacity(0.6),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Browse by category',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: textColor.withOpacity(0.5),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
                     ),
                   ],
                 ),
@@ -99,7 +139,43 @@ class _CategoriesTabState extends State<CategoriesTab> {
                       );
                     }
 
-                    final categories = snapshot.data!;
+                    final query = _searchQuery.toLowerCase();
+                    final categories = snapshot.data!.where((category) {
+                      return query.isEmpty ||
+                          category.title.toLowerCase().contains(query) ||
+                          category.details.toLowerCase().contains(query);
+                    }).toList();
+
+                    if (categories.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          const SizedBox(height: 120),
+                          Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.search_off_rounded, size: 48,
+                                    color: theme.colorScheme.onSurface.withOpacity(0.3)),
+                                const SizedBox(height: 12),
+                                Text(
+                                  query.isEmpty ? 'No categories found' : 'No matching categories',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface.withOpacity(0.55),
+                                  ),
+                                ),
+                                if (query.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text('Try another search term',
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                                      )),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }
 
                     return GridView.builder(
                       padding: const EdgeInsets.fromLTRB(24, 5, 24, 100),
