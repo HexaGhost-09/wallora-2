@@ -353,18 +353,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: theme.colorScheme.onSurface.withOpacity(0.06),
                       ),
                       _SettingsTile(
-                        icon: Iconsax.shop,
-                        title: "Store",
-                        subtitle: "Get Wallora on itch.io",
-                        onTap: () => _launchExternalUrl(
-                          'https://hexaghost-09.itch.io/wallora',
-                        ),
-                      ),
-                      Container(
-                        height: 1,
-                        color: theme.colorScheme.onSurface.withOpacity(0.06),
-                      ),
-                      _SettingsTile(
                         icon: Iconsax.global,
                         title: "Website",
                         subtitle: "wallora-web.netlify.app",
