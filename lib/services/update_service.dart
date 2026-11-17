@@ -37,30 +37,26 @@ class UpdateService {
     _isChecking = true;
 
     try {
-      // Get current app version
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
 
-      // Fetch latest release from GitHub
+      // GitHub Releases is the primary source for update metadata and downloads.
       final response = await http.get(
         Uri.parse(
           'https://api.github.com/repos/HexaGhost-09/wallora-2/releases/latest',
         ),
+        headers: const {'Accept': 'application/vnd.github+json'},
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final String tagName = data['tag_name'] ?? '';
-        final String htmlUrl = data['html_url'] ?? '';
+        final String htmlUrl = data['html_url'] ??
+            'https://github.com/HexaGhost-09/wallora-2/releases/latest';
         final String body = data['body'] ?? '';
 
-        // Clean tag name (remove 'v' prefix if present)
-        final cleanTag = tagName.startsWith('v')
-            ? tagName.substring(1)
-            : tagName;
-
-        // Simple string comparison for now, or use a semver parser if strict
-        // Assuming format 1.2.6
+        final cleanTag =
+            tagName.startsWith('v') ? tagName.substring(1) : tagName;
         final isAvailable = _isVersionNewer(currentVersion, cleanTag);
 
         _latestUpdate = UpdateInfo(
@@ -71,13 +67,11 @@ class UpdateService {
         );
 
         if (isAvailable && showNotification) {
-          final String version = isAvailable ? cleanTag : currentVersion;
-          // Build SourceForge link dynamically for notification
-          final sfUrl =
-              'https://sourceforge.net/projects/wallora-android-app/files/v$version/app-release.apk/download';
+          final apkUrl =
+              'https://github.com/HexaGhost-09/wallora-2/releases/latest/download/Wallora-v$cleanTag.apk';
           await NotificationService.instance.showUpdateNotification(
             cleanTag,
-            sfUrl,
+            apkUrl,
           );
         }
 
@@ -91,28 +85,22 @@ class UpdateService {
     return null;
   }
 
-  // Compares two version strings (e.g., "1.2.6" vs "1.2.7")
-  // Returns true if remote is newer than local
   bool _isVersionNewer(String local, String remote) {
     try {
-      // Remove any build metadata involved (e.g. +1)
-      final localClean = local.split('+')[0];
-      final remoteClean = remote.split('+')[0]; // Just in case
-
-      List<int> localParts = localClean.split('.').map(int.parse).toList();
-      List<int> remoteParts = remoteClean.split('.').map(int.parse).toList();
+      final localParts = local.split('+').first.split('.').map(int.parse).toList();
+      final remoteParts =
+          remote.split('+').first.split('.').map(int.parse).toList();
 
       for (int i = 0; i < localParts.length && i < remoteParts.length; i++) {
         if (remoteParts[i] > localParts[i]) return true;
         if (remoteParts[i] < localParts[i]) return false;
       }
 
-      // If we are here, prefix matches. If remote has more parts, it's newer (usually)
-      if (remoteParts.length > localParts.length) return true;
+      return remoteParts.length > localParts.length;
     } catch (e) {
       print("Version parse error: $e");
+      return false;
     }
-    return false;
   }
 
   Future<void> initialize() async {
