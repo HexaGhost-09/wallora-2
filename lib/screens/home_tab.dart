@@ -15,12 +15,10 @@ class _HomeTabState extends State<HomeTab> {
   Key _trayKey = UniqueKey();
 
   Future<void> _handleRefresh() async {
-    // Force fetch from Neon and update cache
     final userId = AuthService.instance.currentUser?.id;
     await WalloraAPI.getWallpapers(forceRefresh: true, userId: userId);
     if (mounted) {
       setState(() {
-        // Rebuild tray to show new data
         _trayKey = UniqueKey();
       });
     }
@@ -28,12 +26,14 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
         child: RefreshIndicator(
           onRefresh: _handleRefresh,
-          color: Theme.of(context).colorScheme.primary,
+          color: theme.colorScheme.primary,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
@@ -49,7 +49,7 @@ class _HomeTabState extends State<HomeTab> {
                   width: double.infinity,
                   child: HomeHeader(),
                 ),
-                backgroundColor: Colors.transparent,
+                backgroundColor: theme.colorScheme.surface.withOpacity(0.96),
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 scrolledUnderElevation: 0,
@@ -58,13 +58,49 @@ class _HomeTabState extends State<HomeTab> {
                 child: Column(
                   children: [
                     WallpaperTray(key: _trayKey),
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 24),
+                    _buildEndOfWallpapers(theme),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEndOfWallpapers(ThemeData theme) {
+    final muted = theme.colorScheme.onSurface.withOpacity(0.42);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: muted.withOpacity(0.35))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              children: [
+                Icon(Icons.check_circle_outline_rounded, size: 19, color: muted),
+                const SizedBox(height: 8),
+                Text(
+                  'You’re all caught up',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: muted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'You’ve reached the end of wallpapers',
+                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                ),
+              ],
+            ),
+          ),
+          Expanded(child: Divider(color: muted.withOpacity(0.35))),
+        ],
       ),
     );
   }
