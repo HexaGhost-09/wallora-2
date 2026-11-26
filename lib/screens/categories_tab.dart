@@ -66,7 +66,7 @@ class _CategoriesTabState extends State<CategoriesTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Browse by category',
+                          'Browse by category and tag',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: textColor.withOpacity(0.5),
                             fontWeight: FontWeight.w500,
