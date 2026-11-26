@@ -13,7 +13,8 @@ import requests
 
 API_BASE = "https://app.drime.cloud/api/v1"
 TOKEN = os.environ.get("DRIME_TOKEN", "").strip()
-CHUNK_SIZE = 5 * 1024 * 1024
+SIMPLE_UPLOAD_LIMIT = 5 * 1024 * 1024
+CHUNK_SIZE = 50 * 1024 * 1024  # 50 MiB per multipart part
 WORKERS = 4
 WORKSPACE_ID = 0  # Drime personal workspace
 
@@ -213,7 +214,7 @@ def upload(path: Path) -> dict:
     size = path.stat().st_size
     if size == 0:
         raise RuntimeError("Refusing to upload an empty file.")
-    if size < CHUNK_SIZE:
+    if size < SIMPLE_UPLOAD_LIMIT:
         return upload_small(path)
     return upload_large(path)
 
