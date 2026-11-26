@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:postgres/postgres.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/wallpaper_model.dart';
 import '../models/category.dart';
@@ -12,6 +13,19 @@ const _neonUser = 'neondb_owner';
 const _neonPassword = 'npg_tuKfs4nH0wZa';
 
 class WalloraAPI {
+  static bool get _isDesktop => !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.windows ||
+       defaultTargetPlatform == TargetPlatform.macOS ||
+       defaultTargetPlatform == TargetPlatform.linux);
+  static String get _wallpapersTable =>
+      _isDesktop ? 'desktop_wallpapers' : 'wallpapers';
+  static String get _likesTable =>
+      _isDesktop ? 'desktop_wallpaper_likes' : 'wallpaper_likes';
+  static String get _savedTable =>
+      _isDesktop ? 'desktop_wallpaper_saved' : 'wallpaper_saved';
+  static String get _cacheNamespace => _isDesktop ? 'desktop_' : '';
+  static String get _activeFilter => _isDesktop ? ' WHERE w.is_active = TRUE' : '';
+  static String get _activeAndFilter => _isDesktop ? ' AND w.is_active = TRUE' : '';
   /// Open a short-lived Neon connection, run [query], then close it.
   static Future<Connection> _connect() async {
     return Connection.open(
@@ -31,7 +45,7 @@ class WalloraAPI {
     bool forceRefresh = false,
     String? userId,
   }) async {
-    const cacheKey = 'cache_wallpapers_all';
+    final cacheKey = 'cache_${_cacheNamespace}wallpapers_all';
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
@@ -52,9 +66,9 @@ class WalloraAPI {
       final result = await conn.execute(
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
-          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
-          'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
-          'FROM wallpapers w ORDER BY w.timestamp DESC',
+          'EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM $_savedTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
+          'FROM $_wallpapersTable w${_activeFilter} ORDER BY w.timestamp DESC',
         ),
         parameters: {'userId': userId ?? ''},
       );
@@ -84,7 +98,7 @@ class WalloraAPI {
     bool forceRefresh = false,
     String? userId,
   }) async {
-    final cacheKey = 'cache_wallpapers_$categoryId';
+    final cacheKey = 'cache_${_cacheNamespace}wallpapers_$categoryId';
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
@@ -105,9 +119,9 @@ class WalloraAPI {
       final result = await conn.execute(
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
-          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
-          'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
-          'FROM wallpapers w WHERE (CASE WHEN @isTag THEN @tag = ANY(w.tags) ELSE w.category = @cat END) ORDER BY w.timestamp DESC',
+          'EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM $_savedTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
+          'FROM $_wallpapersTable w WHERE (CASE WHEN @isTag THEN @tag = ANY(w.tags) ELSE w.category = @cat END)${_activeAndFilter} ORDER BY w.timestamp DESC',
         ),
         parameters: {'cat': categoryId, 'isTag': categoryId.startsWith('tag:'), 'tag': categoryId.startsWith('tag:') ? categoryId.substring(4) : '', 'userId': userId ?? ''},
       );
@@ -140,9 +154,9 @@ class WalloraAPI {
       final result = await conn.execute(
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
-          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
-          'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
-          'FROM wallpapers w WHERE LOWER(w.title) LIKE LOWER(@query) OR LOWER(w.category) LIKE LOWER(@query) ORDER BY w.timestamp DESC',
+          'EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM $_savedTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
+          'FROM $_wallpapersTable w WHERE (LOWER(w.title) LIKE LOWER(@query) OR LOWER(w.category) LIKE LOWER(@query))${_activeAndFilter} ORDER BY w.timestamp DESC',
         ),
         parameters: {
           'query': '%$query%',
@@ -170,13 +184,13 @@ class WalloraAPI {
         // Unlike
         await conn.execute(
           Sql.named(
-            'DELETE FROM wallpaper_likes WHERE wallpaper_id = @wpId AND user_id = @uId',
+            'DELETE FROM $_likesTable WHERE wallpaper_id = @wpId AND user_id = @uId',
           ),
           parameters: {'wpId': wallpaperId, 'uId': userId},
         );
         await conn.execute(
           Sql.named(
-            'UPDATE wallpapers SET likes_count = (SELECT COUNT(*) FROM wallpaper_likes WHERE wallpaper_id = @wpId) WHERE id = @wpId',
+            'UPDATE $_wallpapersTable SET likes_count = (SELECT COUNT(*) FROM $_likesTable WHERE wallpaper_id = @wpId) WHERE id = @wpId',
           ),
           parameters: {'wpId': wallpaperId},
         );
@@ -184,13 +198,13 @@ class WalloraAPI {
         // Like
         await conn.execute(
           Sql.named(
-            'INSERT INTO wallpaper_likes (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING',
+            'INSERT INTO $_likesTable (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING',
           ),
           parameters: {'wpId': wallpaperId, 'uId': userId},
         );
         await conn.execute(
           Sql.named(
-            'UPDATE wallpapers SET likes_count = (SELECT COUNT(*) FROM wallpaper_likes WHERE wallpaper_id = @wpId) WHERE id = @wpId',
+            'UPDATE $_wallpapersTable SET likes_count = (SELECT COUNT(*) FROM $_likesTable WHERE wallpaper_id = @wpId) WHERE id = @wpId',
           ),
           parameters: {'wpId': wallpaperId},
         );
@@ -201,7 +215,7 @@ class WalloraAPI {
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs
           .getKeys()
-          .where((k) => k.startsWith('cache_wallpapers_'))
+          .where((k) => k.startsWith('cache_${_cacheNamespace}wallpapers_'))
           .toList();
       for (final key in keys) {
         final cached = prefs.getString(key);
@@ -243,7 +257,7 @@ class WalloraAPI {
       final conn = await _connect();
       final result = await conn.execute(
         Sql.named(
-          'SELECT id, likes_count, EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = id AND user_id = @userId) as is_liked, EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = id AND user_id = @userId) as is_saved FROM wallpapers',
+          'SELECT w.id, w.likes_count, EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, EXISTS(SELECT 1 FROM $_savedTable WHERE wallpaper_id = id AND user_id = @userId) as is_saved FROM $_wallpapersTable w${_activeFilter}',
         ),
         parameters: {'userId': userId ?? ''},
       );
@@ -277,7 +291,7 @@ class WalloraAPI {
         final prefs = await SharedPreferences.getInstance();
         final keys = prefs
             .getKeys()
-            .where((k) => k.startsWith('cache_wallpapers_'))
+            .where((k) => k.startsWith('cache_${_cacheNamespace}wallpapers_'))
             .toList();
         for (final key in keys) {
           final cachedStr = prefs.getString(key);
@@ -327,7 +341,7 @@ class WalloraAPI {
         // Unsave
         await conn.execute(
           Sql.named(
-            'DELETE FROM wallpaper_saved WHERE wallpaper_id = @wpId AND user_id = @uId',
+            'DELETE FROM $_savedTable WHERE wallpaper_id = @wpId AND user_id = @uId',
           ),
           parameters: {'wpId': wallpaperId, 'uId': userId},
         );
@@ -335,7 +349,7 @@ class WalloraAPI {
         // Save
         await conn.execute(
           Sql.named(
-            'INSERT INTO wallpaper_saved (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING',
+            'INSERT INTO $_savedTable (wallpaper_id, user_id) VALUES (@wpId, @uId) ON CONFLICT DO NOTHING',
           ),
           parameters: {'wpId': wallpaperId, 'uId': userId},
         );
@@ -346,7 +360,7 @@ class WalloraAPI {
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs
           .getKeys()
-          .where((k) => k.startsWith('cache_wallpapers_'))
+          .where((k) => k.startsWith('cache_${_cacheNamespace}wallpapers_'))
           .toList();
       for (final key in keys) {
         final cached = prefs.getString(key);
@@ -377,7 +391,7 @@ class WalloraAPI {
     bool forceRefresh = false,
     required String userId,
   }) async {
-    final cacheKey = 'cache_wallpapers_saved_$userId';
+    final cacheKey = 'cache_${_cacheNamespace}wallpapers_saved_$userId';
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
@@ -398,10 +412,10 @@ class WalloraAPI {
       final result = await conn.execute(
         Sql.named(
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
-          'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
+          'EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
           'TRUE as is_saved '
-          'FROM wallpapers w '
-          'INNER JOIN wallpaper_saved ws ON w.id = ws.wallpaper_id '
+          'FROM $_wallpapersTable w '
+          'INNER JOIN $_savedTable ws ON w.id = ws.wallpaper_id '
           'WHERE ws.user_id = @userId '
           'ORDER BY ws.saved_at DESC',
         ),
@@ -432,7 +446,7 @@ class WalloraAPI {
   static Future<List<Category>> getCategories({
     bool forceRefresh = false,
   }) async {
-    const cacheKey = 'cache_categories_v175';
+    const cacheKey = 'cache_${_cacheNamespace}categories_v178';
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
@@ -450,10 +464,23 @@ class WalloraAPI {
 
     try {
       final conn = await _connect();
-      final result = await conn.execute(
-        'SELECT id, title, thumbnail, details FROM categories ORDER BY title ASC',
-      );
-      final tagResult = await conn.execute('SELECT tag, title, thumbnail, wallpaper_count FROM wallpaper_tag_groups ORDER BY wallpaper_count DESC, title ASC');
+      final result = _isDesktop
+          ? await conn.execute(
+              "SELECT d.category AS id, d.category AS title, "
+              "(SELECT w.image FROM desktop_wallpapers w WHERE w.category = d.category AND w.is_active = TRUE "
+              "ORDER BY w.sort_order ASC, w.timestamp DESC LIMIT 1) AS thumbnail, "
+              "COUNT(*)::text || ' wallpapers' AS details "
+              "FROM desktop_wallpapers d WHERE d.is_active = TRUE "
+              "GROUP BY d.category ORDER BY d.category ASC",
+            )
+          : await conn.execute(
+              'SELECT id, title, thumbnail, details FROM categories ORDER BY title ASC',
+            );
+      final tagResult = _isDesktop
+          ? <ResultRow>[]
+          : await conn.execute(
+              'SELECT tag, title, thumbnail, wallpaper_count FROM wallpaper_tag_groups ORDER BY wallpaper_count DESC, title ASC',
+            );
       await conn.close();
 
       final categories = result.map((row) {
