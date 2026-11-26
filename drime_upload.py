@@ -171,13 +171,11 @@ def upload_large(path: Path) -> dict:
         uploaded_parts.sort(key=lambda item: item["PartNumber"])
 
         # 4. Complete the multipart upload.
-        completed = api("POST", "s3/multipart/complete", json={
+        api("POST", "s3/multipart/complete", json={
             "key": key,
             "uploadId": upload_id,
             "parts": uploaded_parts,
         })
-        if str(completed.get("status", "")).lower() != "success":
-            raise RuntimeError(f"Drime multipart completion failed: {completed}")
 
         # 5. Register the completed S3 object in Drime Drive.
         object_name = key.split("/")[-1]
