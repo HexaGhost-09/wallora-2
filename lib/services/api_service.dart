@@ -107,9 +107,9 @@ class WalloraAPI {
           'SELECT w.id, w.category, w.title, w.image, w.download, w.timestamp, w.likes_count, '
           'EXISTS(SELECT 1 FROM wallpaper_likes WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, '
           'EXISTS(SELECT 1 FROM wallpaper_saved WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved '
-          'FROM wallpapers w WHERE w.category = @cat ORDER BY w.timestamp DESC',
+          'FROM wallpapers w WHERE (CASE WHEN @isTag THEN @tag = ANY(w.tags) ELSE w.category = @cat END) ORDER BY w.timestamp DESC',
         ),
-        parameters: {'cat': categoryId, 'userId': userId ?? ''},
+        parameters: {'cat': categoryId, 'isTag': categoryId.startsWith('tag:'), 'tag': categoryId.startsWith('tag:') ? categoryId.substring(4) : '', 'userId': userId ?? ''},
       );
       await conn.close();
 
@@ -432,7 +432,7 @@ class WalloraAPI {
   static Future<List<Category>> getCategories({
     bool forceRefresh = false,
   }) async {
-    const cacheKey = 'cache_categories';
+    const cacheKey = 'cache_categories_v175';
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
@@ -453,6 +453,7 @@ class WalloraAPI {
       final result = await conn.execute(
         'SELECT id, title, thumbnail, details FROM categories ORDER BY title ASC',
       );
+      final tagResult = await conn.execute('SELECT tag, title, thumbnail, wallpaper_count FROM wallpaper_tag_groups ORDER BY wallpaper_count DESC, title ASC');
       await conn.close();
 
       final categories = result.map((row) {
@@ -463,6 +464,13 @@ class WalloraAPI {
           details: row[3]?.toString() ?? '',
         );
       }).toList();
+      categories.addAll(tagResult.map((row) => Category(
+        id: 'tag:${row[0]}',
+        title: row[1].toString(),
+        thumbnail: row[2].toString(),
+        details: '${row[3]} wallpapers',
+        isTag: true,
+      )));
 
       await prefs.setString(
         cacheKey,
@@ -474,6 +482,7 @@ class WalloraAPI {
                   'title': c.title,
                   'thumbnail': c.thumbnail,
                   'details': c.details,
+                  'is_tag': c.isTag,
                 },
               )
               .toList(),
