@@ -1,0 +1,85 @@
+name: Drime APK Uploader
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drime-apk-uploader
+  cancel-in-progress: false
+
+jobs:
+  upload-latest-apks:
+    name: Upload latest stable APKs to Drime
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout uploader
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uploader dependency
+        run: python -m pip install --disable-pip-version-check requests
+
+      - name: Find and download APKs from latest stable release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p downloads
+
+          RELEASE="$(gh api "repos/${GH_REPO}/releases/latest")"
+          TAG="$(jq -r '.tag_name' <<< "$RELEASE")"
+          NAME="$(jq -r '.name // .tag_name' <<< "$RELEASE")"
+          echo "Latest stable release: $NAME ($TAG)"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          mapfile -t ASSETS < <(
+            jq -r '.assets[] | select(.name | ascii_downcase | endswith(".apk")) | [.name, .browser_download_url] | @tsv' <<< "$RELEASE"
+          )
+
+          if (( ${#ASSETS[@]} == 0 )); then
+            echo "::error::Latest stable release $TAG has no APK assets."
+            exit 1
+          fi
+
+          for asset in "${ASSETS[@]}"; do
+            IFS=$'\t' read -r filename url <<< "$asset"
+            echo "Downloading $filename"
+            curl --fail --location --retry 3 --retry-delay 2 "$url" -o "downloads/$filename"
+            test -s "downloads/$filename"
+            echo "Downloaded $filename ($(du -h "downloads/$filename" | cut -f1))"
+          done
+
+      - name: Upload every APK to Drime
+        env:
+          DRIME_TOKEN: ${{ secrets.DRIME_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${DRIME_TOKEN:-}" ]]; then
+            echo "::error::Missing DRIME_TOKEN repository secret."
+            exit 1
+          fi
+
+          shopt -s nullglob
+          files=(downloads/*.apk downloads/*.APK)
+          if (( ${#files[@]} == 0 )); then
+            echo "::error::No APK files were downloaded."
+            exit 1
+          fi
+
+          for file in "${files[@]}"; do
+            python drime_upload.py "$file"
+          done
+
+          echo "All ${#files[@]} APK file(s) uploaded to Drime."
