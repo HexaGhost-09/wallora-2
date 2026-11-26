@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_page.dart';
+import 'screens/desktop_home_page.dart';
 import 'screens/welcome_screen.dart';
 import 'services/update_service.dart';
 import 'services/theme_service.dart';
@@ -39,6 +40,12 @@ void main() async {
   final isFirstTime = prefs.getBool('isFirstTime') ?? true;
   runApp(WalloraApp(isFirstTime: isFirstTime));
 }
+
+bool get _isDesktopPlatform =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.linux);
 
 class AppGradients {
   static const primary = LinearGradient(
@@ -140,9 +147,11 @@ class _WalloraAppState extends State<WalloraApp> {
               ),
             ),
           ),
-          home: widget.isFirstTime
-              ? const WelcomeScreen()
-              : const _WhatsNewGate(child: HomePage()),
+          home: _isDesktopPlatform
+              ? const DesktopHomePage()
+              : widget.isFirstTime
+                  ? const WelcomeScreen()
+                  : const _WhatsNewGate(child: HomePage()),
         );
       },
     );
