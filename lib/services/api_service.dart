@@ -257,7 +257,7 @@ class WalloraAPI {
       final conn = await _connect();
       final result = await conn.execute(
         Sql.named(
-          'SELECT w.id, w.likes_count, EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, EXISTS(SELECT 1 FROM $_savedTable WHERE wallpaper_id = id AND user_id = @userId) as is_saved FROM $_wallpapersTable w${_activeFilter}',
+          'SELECT w.id, w.likes_count, EXISTS(SELECT 1 FROM $_likesTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_liked, EXISTS(SELECT 1 FROM $_savedTable WHERE wallpaper_id = w.id AND user_id = @userId) as is_saved FROM $_wallpapersTable w${_activeFilter}',
         ),
         parameters: {'userId': userId ?? ''},
       );
@@ -416,7 +416,7 @@ class WalloraAPI {
           'TRUE as is_saved '
           'FROM $_wallpapersTable w '
           'INNER JOIN $_savedTable ws ON w.id = ws.wallpaper_id '
-          'WHERE ws.user_id = @userId '
+          'WHERE ws.user_id = @userId${_activeAndFilter} '
           'ORDER BY ws.saved_at DESC',
         ),
         parameters: {'userId': userId},
@@ -446,7 +446,7 @@ class WalloraAPI {
   static Future<List<Category>> getCategories({
     bool forceRefresh = false,
   }) async {
-    const cacheKey = 'cache_${_cacheNamespace}categories_v178';
+    final cacheKey = 'cache_${_cacheNamespace}categories_v178';
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
