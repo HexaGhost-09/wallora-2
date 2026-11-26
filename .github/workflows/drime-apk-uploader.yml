@@ -1,18 +1,44 @@
-name: Drime APK Uploader
+name: Drime Release Uploader
 
 on:
   workflow_dispatch:
+    inputs:
+      android:
+        description: "Android — APK"
+        required: false
+        type: boolean
+        default: true
+      windows:
+        description: "Windows — installer EXE and ZIP packages"
+        required: false
+        type: boolean
+        default: false
+      macos:
+        description: "macOS — DMG and ZIP packages"
+        required: false
+        type: boolean
+        default: false
+      linux:
+        description: "Linux — TAR.GZ packages"
+        required: false
+        type: boolean
+        default: false
+      ios:
+        description: "iOS — IPA and ZIP package"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: drime-apk-uploader
+  group: drime-release-uploader
   cancel-in-progress: false
 
 jobs:
-  upload-latest-apks:
-    name: Upload latest stable APKs to Drime
+  upload-release:
+    name: Download selected release files and upload to Drime
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -27,15 +53,25 @@ jobs:
       - name: Install uploader dependency
         run: python -m pip install --disable-pip-version-check requests
 
-      - name: Find and download APKs from latest stable release
+      - name: Select and download latest stable release assets
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          SELECT_ANDROID: ${{ inputs.android }}
+          SELECT_WINDOWS: ${{ inputs.windows }}
+          SELECT_MACOS: ${{ inputs.macos }}
+          SELECT_LINUX: ${{ inputs.linux }}
+          SELECT_IOS: ${{ inputs.ios }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p downloads
+
+          if [[ "$SELECT_ANDROID" != "true" && "$SELECT_WINDOWS" != "true" && "$SELECT_MACOS" != "true" && "$SELECT_LINUX" != "true" && "$SELECT_IOS" != "true" ]]; then
+            echo "::error::Select at least one platform before running the uploader."
+            exit 1
+          fi
 
           RELEASE="$(gh api "repos/${GH_REPO}/releases/latest")"
           TAG="$(jq -r '.tag_name' <<< "$RELEASE")"
@@ -43,24 +79,46 @@ jobs:
           echo "Latest stable release: $NAME ($TAG)"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+          # Include every published package belonging to each selected platform.
+          # This intentionally includes both versioned and convenience ZIP assets.
           mapfile -t ASSETS < <(
-            jq -r '.assets[] | select(.name | ascii_downcase | endswith(".apk")) | [.name, .browser_download_url] | @tsv' <<< "$RELEASE"
+            jq -r \
+              --argjson android "$([[ "$SELECT_ANDROID" == "true" ]] && echo true || echo false)" \
+              --argjson windows "$([[ "$SELECT_WINDOWS" == "true" ]] && echo true || echo false)" \
+              --argjson macos "$([[ "$SELECT_MACOS" == "true" ]] && echo true || echo false)" \
+              --argjson linux "$([[ "$SELECT_LINUX" == "true" ]] && echo true || echo false)" \
+              --argjson ios "$([[ "$SELECT_IOS" == "true" ]] && echo true || echo false)" '
+              .assets[]
+              | . as $asset
+              | (.name | ascii_downcase) as $n
+              | select(
+                  ($android and ($n | endswith(".apk"))) or
+                  ($windows and (($n | endswith(".exe")) or (($n | contains("windows")) and ($n | endswith(".zip"))))) or
+                  ($macos and (($n | endswith(".dmg")) or (($n | contains("macos")) and ($n | endswith(".zip"))))) or
+                  ($linux and ($n | contains("linux")) and ($n | endswith(".tar.gz"))) or
+                  ($ios and (($n | endswith(".ipa")) or (($n | contains("ios")) and ($n | endswith(".zip")))))
+                )
+              | [.name, .browser_download_url]
+              | @tsv
+              ' <<< "$RELEASE"
           )
 
           if (( ${#ASSETS[@]} == 0 )); then
-            echo "::error::Latest stable release $TAG has no APK assets."
+            echo "::error::No release assets matched the selected platforms for $TAG."
             exit 1
           fi
 
+          printf '%s\n' "${ASSETS[@]}" > downloads/asset-list.txt
+          echo "Selected ${#ASSETS[@]} release asset(s):"
           for asset in "${ASSETS[@]}"; do
             IFS=$'\t' read -r filename url <<< "$asset"
-            echo "Downloading $filename"
+            echo " - $filename"
             curl --fail --location --retry 3 --retry-delay 2 "$url" -o "downloads/$filename"
             test -s "downloads/$filename"
-            echo "Downloaded $filename ($(du -h "downloads/$filename" | cut -f1))"
+            echo "   Downloaded ($(du -h "downloads/$filename" | cut -f1))"
           done
 
-      - name: Upload every APK to Drime
+      - name: Upload selected files to Drime
         env:
           DRIME_TOKEN: ${{ secrets.DRIME_TOKEN }}
         shell: bash
@@ -71,15 +129,14 @@ jobs:
             exit 1
           fi
 
-          shopt -s nullglob
-          files=(downloads/*.apk downloads/*.APK)
-          if (( ${#files[@]} == 0 )); then
-            echo "::error::No APK files were downloaded."
-            exit 1
-          fi
-
-          for file in "${files[@]}"; do
+          mapfile -t ASSETS < downloads/asset-list.txt
+          uploaded=0
+          for asset in "${ASSETS[@]}"; do
+            IFS=$'\t' read -r filename _ <<< "$asset"
+            file="downloads/$filename"
+            [[ -s "$file" ]] || { echo "::error::Missing downloaded asset: $filename"; exit 1; }
             python drime_upload.py "$file"
+            uploaded=$((uploaded + 1))
           done
 
-          echo "All ${#files[@]} APK file(s) uploaded to Drime."
+          echo "Successfully uploaded $uploaded release asset(s) to Drime."
