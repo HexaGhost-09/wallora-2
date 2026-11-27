@@ -232,7 +232,7 @@ def upload_large(path: Path, parent_id: int) -> dict:
             "clientMime": mime,
             "clientExtension": extension,
             "workspaceId": WORKSPACE_ID,
-            "parentId": None,
+            "parentId": parent_id,
         })
         if (
             str(registered.get("status", "")).lower() != "success"
