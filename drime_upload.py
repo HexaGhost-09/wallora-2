@@ -17,6 +17,8 @@ SIMPLE_UPLOAD_LIMIT = 5 * 1024 * 1024
 CHUNK_SIZE = 50 * 1024 * 1024  # 50 MiB per multipart part
 WORKERS = 4
 WORKSPACE_ID = 0  # Drime personal workspace
+ROOT_FOLDER = "wallora"
+VERSION = os.environ.get("DRIME_VERSION", "").strip().lstrip("v")
 
 if not TOKEN:
     raise SystemExit("DRIME_TOKEN is not set.")
@@ -49,13 +51,56 @@ def api(method: str, endpoint: str, **kwargs):
         ) from exc
 
 
-def upload_small(path: Path) -> dict:
+def find_or_create_folder(name: str, parent_id: int | None = None) -> int:
+    """Return an existing folder ID or create it under the requested parent."""
+    page = 1
+    while True:
+        params = {"workspaceId": WORKSPACE_ID, "page": page, "perPage": 100, "type": "folder"}
+        if parent_id is not None:
+            params["parentIds"] = parent_id
+        listing = api("GET", "drive/file-entries", params=params)
+        entries = listing.get("data") or []
+        for entry in entries:
+            entry_parent = entry.get("parent_id", entry.get("parentId"))
+            if (entry.get("type") == "folder"
+                and str(entry.get("name", "")).casefold() == name.casefold()
+                and entry.get("id") is not None
+                and (str(entry_parent) if entry_parent is not None else None)
+                    == (str(parent_id) if parent_id is not None else None)):
+                return int(entry["id"])
+
+        current_page = int(listing.get("current_page") or page)
+        last_page = int(listing.get("last_page") or 0)
+        if not entries or (last_page and current_page >= last_page) or (not last_page and len(entries) < 100):
+            break
+        page += 1
+
+    created = api("POST", f"folders?workspaceId={WORKSPACE_ID}", json={
+        "name": name, "parentId": parent_id,
+    })
+    folder = created.get("folder") or created.get("data") or created.get("fileEntry")
+    if not isinstance(folder, dict) or folder.get("id") is None:
+        raise RuntimeError(f"Drime folder creation returned no folder ID for {name!r}: {created}")
+    print(f"Created Drime folder: {name} (ID: {folder['id']})", flush=True)
+    return int(folder["id"])
+
+
+def ensure_release_folder() -> int:
+    if not VERSION:
+        raise RuntimeError("DRIME_VERSION is not set; refusing to upload outside a version folder.")
+    root_id = find_or_create_folder(ROOT_FOLDER)
+    version_id = find_or_create_folder(VERSION, root_id)
+    print(f"Target folder: {ROOT_FOLDER}/{VERSION} (ID: {version_id})", flush=True)
+    return version_id
+
+
+def upload_small(path: Path, parent_id: int) -> dict:
     """Drime's documented simple upload route for files below 5 MiB."""
     with path.open("rb") as stream:
         response = api_session.post(
             f"{API_BASE}/uploads",
             files={"file": (path.name, stream, "application/octet-stream")},
-            data={"workspaceId": str(WORKSPACE_ID)},
+            data={"workspaceId": str(WORKSPACE_ID), "parentId": str(parent_id)},
             timeout=300,
         )
     if not response.ok:
@@ -97,7 +142,7 @@ def upload_part(url: str, part_number: int, chunk: bytes) -> dict:
     )
 
 
-def upload_large(path: Path) -> dict:
+def upload_large(path: Path, parent_id: int) -> dict:
     size = path.stat().st_size
     extension = path.suffix.lstrip(".").lower() or "bin"
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
@@ -109,7 +154,7 @@ def upload_large(path: Path) -> dict:
         "size": size,
         "extension": extension,
         "workspaceId": WORKSPACE_ID,
-        "parentId": None,
+        "parentId": parent_id,
     })
     if str(created.get("status", "")).lower() != "success":
         raise RuntimeError(f"Drime multipart create failed: {created}")
@@ -208,26 +253,27 @@ def upload_large(path: Path) -> dict:
         raise
 
 
-def upload(path: Path) -> dict:
+def upload(path: Path, parent_id: int) -> dict:
     if not path.is_file():
         raise FileNotFoundError(path)
     size = path.stat().st_size
     if size == 0:
         raise RuntimeError("Refusing to upload an empty file.")
     if size < SIMPLE_UPLOAD_LIMIT:
-        return upload_small(path)
-    return upload_large(path)
+        return upload_small(path, parent_id)
+    return upload_large(path, parent_id)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        raise SystemExit("Usage: python drime_upload.py <file>")
+        raise SystemExit("Usage: DRIME_VERSION=1.0.1 python drime_upload.py <file>")
     file_path = Path(sys.argv[1]).resolve()
     print(
         f"Uploading {file_path.name} ({file_path.stat().st_size:,} bytes) to Drime",
         flush=True,
     )
-    result = upload(file_path)
+    target_folder_id = ensure_release_folder()
+    result = upload(file_path, target_folder_id)
     entry = result.get("fileEntry", {})
     print(
         f"Upload successful: {entry.get('name', file_path.name)} "
