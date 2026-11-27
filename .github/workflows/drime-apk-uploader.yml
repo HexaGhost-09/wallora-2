@@ -121,6 +121,7 @@ jobs:
       - name: Upload selected files to Drime
         env:
           DRIME_TOKEN: ${{ secrets.DRIME_TOKEN }}
+          DRIME_VERSION: ${{ steps.release.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
