@@ -48,7 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
       try {
         final categories = await WalloraAPI.getCategories();
         final normalized = query.trim().toLowerCase();
-        final matches = categories.where((category) {
+        final matches = categories.where((Category category) {
           return category.title.toLowerCase().contains(normalized) ||
               category.details.toLowerCase().contains(normalized);
         }).toList();
