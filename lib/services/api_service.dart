@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:postgres/postgres.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/wallpaper_model.dart';
 import '../models/category.dart';
